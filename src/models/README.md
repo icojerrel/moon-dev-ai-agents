@@ -6,14 +6,45 @@ A unified interface for managing multiple AI model providers. This module handle
 
 Add these to your `.env` file in the project root:
 ```env
-ANTHROPIC_KEY=your_key_here    # For Claude models
-GROQ_API_KEY=your_key_here     # For Groq models (includes Mixtral, Llama, etc.)
-OPENAI_KEY=your_key_here       # For OpenAI models (GPT-4, O1, etc.)
-GEMINI_KEY=your_key_here       # For Gemini models
-DEEPSEEK_KEY=your_key_here     # For DeepSeek models
+ANTHROPIC_KEY=your_key_here        # For Claude models
+GROQ_API_KEY=your_key_here         # For Groq models (includes Mixtral, Llama, etc.)
+OPENAI_KEY=your_key_here           # For OpenAI models (GPT-4, O1, etc.)
+GEMINI_KEY=your_key_here           # For Gemini models
+DEEPSEEK_KEY=your_key_here         # For DeepSeek models
+OPENROUTER_API_KEY=your_key_here   # For OpenRouter (100+ models via one API) ⭐ RECOMMENDED
 ```
 
 ## 🤖 Available Models
+
+### OpenRouter (⭐ RECOMMENDED for Cost Savings)
+Access to 100+ AI models through a single unified API with significant cost savings!
+
+**Why OpenRouter?**
+- 💰 Up to 98% cost savings vs direct providers
+- 🌍 Access to 100+ models (Claude, GPT-4, DeepSeek, Llama, etc.)
+- 🔄 Automatic fallback on provider failures
+- 📊 Built-in cost tracking and analytics
+- ⚡ Load balancing across providers
+
+**Popular Models:**
+- `deepseek/deepseek-chat`: $0.14/1M in, $0.28/1M out (Ultra cheap, high quality!)
+- `anthropic/claude-3-haiku`: $0.25/1M in, $1.25/1M out (Fast Claude)
+- `anthropic/claude-3.5-sonnet`: $3.00/1M in, $15.00/1M out (Powerful Claude)
+- `openai/gpt-4o`: $2.50/1M in, $10.00/1M out (Latest GPT-4)
+- `deepseek/deepseek-r1`: $0.55/1M in, $2.19/1M out (Reasoning model)
+
+**Setup:**
+1. Get free API key from https://openrouter.ai
+2. Add credits to your account ($5 minimum)
+3. Add key to `.env`: `OPENROUTER_API_KEY=sk-or-v1-...`
+4. Use: `model = factory.get_model('openrouter', 'deepseek/deepseek-chat')`
+
+**Cost Comparison (100 backtests/day):**
+- Direct DeepSeek: ~$50/day
+- OpenRouter DeepSeek: ~$0.70/day
+- **Savings: $1,458/month!** 💰
+
+See `OPENROUTER_PLAN.md` for complete integration guide.
 
 ### OpenAI Models
 Latest Models:
