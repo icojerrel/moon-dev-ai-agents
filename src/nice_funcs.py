@@ -14,10 +14,22 @@ import time
 import json
 import numpy as np
 import datetime
-import pandas_ta as ta
+try:
+    import pandas_ta as ta
+    PANDAS_TA_AVAILABLE = True
+except ImportError:
+    print("⚠️  pandas_ta not available - some technical indicators may not work")
+    ta = None
+    PANDAS_TA_AVAILABLE = False
 from datetime import datetime, timedelta
 from termcolor import colored, cprint
-import solders
+try:
+    import solders
+    SOLDERS_AVAILABLE = True
+except ImportError:
+    print("⚠️  solders not available - Solana blockchain features disabled")
+    solders = None
+    SOLDERS_AVAILABLE = False
 from dotenv import load_dotenv
 import shutil
 import atexit
