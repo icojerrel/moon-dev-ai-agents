@@ -1,0 +1,312 @@
+# 🌙 Moon Dev AI Trading System
+# Kubernetes Deployment Manifests
+
+---
+# ============================================
+# Namespace
+# ============================================
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: moon-trading
+  labels:
+    name: moon-trading
+    app: trading-system
+
+---
+# ============================================
+# ConfigMap - Configuration
+# ============================================
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: moon-config
+  namespace: moon-trading
+data:
+  PYTHONUNBUFFERED: "1"
+  LOG_LEVEL: "INFO"
+
+---
+# ============================================
+# Secret - API Keys (create manually)
+# ============================================
+# kubectl create secret generic moon-secrets \
+#   --from-literal=ANTHROPIC_KEY=your_key \
+#   --from-literal=BIRDEYE_API_KEY=your_key \
+#   --from-literal=SOLANA_PRIVATE_KEY=your_key \
+#   -n moon-trading
+
+---
+# ============================================
+# Deployment - Trading Bot
+# ============================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: trading-bot
+  namespace: moon-trading
+  labels:
+    app: trading-bot
+    version: v2.0
+spec:
+  replicas: 1  # Only 1 replica for trading (avoid duplicate trades)
+  strategy:
+    type: Recreate  # Don't run multiple versions simultaneously
+  selector:
+    matchLabels:
+      app: trading-bot
+  template:
+    metadata:
+      labels:
+        app: trading-bot
+        version: v2.0
+    spec:
+      containers:
+      - name: trading-bot
+        image: moon-dev-trading:latest
+        imagePullPolicy: IfNotPresent
+
+        command: ["python", "src/agents/async_orchestrator.py"]
+
+        envFrom:
+        - configMapRef:
+            name: moon-config
+        - secretRef:
+            name: moon-secrets
+
+        resources:
+          requests:
+            memory: "2Gi"
+            cpu: "1000m"
+          limits:
+            memory: "4Gi"
+            cpu: "2000m"
+
+        volumeMounts:
+        - name: data
+          mountPath: /app/src/data
+        - name: logs
+          mountPath: /app/logs
+
+        livenessProbe:
+          exec:
+            command:
+            - python
+            - -c
+            - "import sys; sys.path.insert(0, '.'); from src import config"
+          initialDelaySeconds: 30
+          periodSeconds: 60
+          timeoutSeconds: 10
+          failureThreshold: 3
+
+        readinessProbe:
+          exec:
+            command:
+            - python
+            - -c
+            - "import sys; sys.path.insert(0, '.'); from src import config"
+          initialDelaySeconds: 10
+          periodSeconds: 30
+
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: moon-data-pvc
+      - name: logs
+        persistentVolumeClaim:
+          claimName: moon-logs-pvc
+
+      restartPolicy: Always
+
+---
+# ============================================
+# Deployment - Monitoring Dashboard
+# ============================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dashboard
+  namespace: moon-trading
+  labels:
+    app: dashboard
+    version: v2.0
+spec:
+  replicas: 2  # Can run multiple dashboard instances
+  selector:
+    matchLabels:
+      app: dashboard
+  template:
+    metadata:
+      labels:
+        app: dashboard
+        version: v2.0
+    spec:
+      containers:
+      - name: dashboard
+        image: moon-dev-trading:latest
+        imagePullPolicy: IfNotPresent
+
+        command: ["python", "src/services/monitoring_dashboard.py"]
+
+        ports:
+        - containerPort: 5000
+          name: http
+
+        envFrom:
+        - configMapRef:
+            name: moon-config
+        - secretRef:
+            name: moon-secrets
+
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+
+        volumeMounts:
+        - name: data
+          mountPath: /app/src/data
+          readOnly: true
+        - name: logs
+          mountPath: /app/logs
+          readOnly: true
+
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 5000
+          initialDelaySeconds: 15
+          periodSeconds: 30
+
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 5000
+          initialDelaySeconds: 5
+          periodSeconds: 10
+
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: moon-data-pvc
+      - name: logs
+        persistentVolumeClaim:
+          claimName: moon-logs-pvc
+
+---
+# ============================================
+# Service - Dashboard
+# ============================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: dashboard-service
+  namespace: moon-trading
+  labels:
+    app: dashboard
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 80
+    targetPort: 5000
+    protocol: TCP
+    name: http
+  selector:
+    app: dashboard
+
+---
+# ============================================
+# PersistentVolumeClaim - Data
+# ============================================
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: moon-data-pvc
+  namespace: moon-trading
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: standard
+
+---
+# ============================================
+# PersistentVolumeClaim - Logs
+# ============================================
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: moon-logs-pvc
+  namespace: moon-trading
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: standard
+
+---
+# ============================================
+# HorizontalPodAutoscaler - Dashboard
+# ============================================
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: dashboard-hpa
+  namespace: moon-trading
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: dashboard
+  minReplicas: 2
+  maxReplicas: 5
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+
+---
+# ============================================
+# Ingress - Dashboard (optional)
+# ============================================
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: dashboard-ingress
+  namespace: moon-trading
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+spec:
+  ingressClassName: nginx
+  tls:
+  - hosts:
+    - dashboard.moondev.trading  # Replace with your domain
+    secretName: dashboard-tls
+  rules:
+  - host: dashboard.moondev.trading  # Replace with your domain
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: dashboard-service
+            port:
+              number: 80

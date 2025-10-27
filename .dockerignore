@@ -1,0 +1,64 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Documentation
+*.md
+!README.md
+docs/
+
+# Data (exclude from image, mount as volume instead)
+src/data/
+logs/
+benchmarks/
+
+# Tests
+tests/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# CI/CD
+.github/
+
+# Environment files (use secrets instead)
+.env
+.env.local
+.env.*.local
+
+# Rust build artifacts
+rust_core/target/debug/
+rust_core/target/doc/
+
+# Temporary files
+*.log
+*.tmp
+.cache/

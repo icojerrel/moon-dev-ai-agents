@@ -1,0 +1,214 @@
+version: '3.8'
+
+# 🌙 Moon Dev AI Trading System
+# Docker Compose Configuration
+
+services:
+  # ============================================
+  # Main Trading Bot
+  # ============================================
+  trading-bot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: moon-trading-bot
+    restart: unless-stopped
+
+    environment:
+      # AI API Keys (set in .env file)
+      - ANTHROPIC_KEY=${ANTHROPIC_KEY}
+      - OPENAI_KEY=${OPENAI_KEY}
+      - DEEPSEEK_KEY=${DEEPSEEK_KEY}
+      - GROQ_API_KEY=${GROQ_API_KEY}
+      - GROK_API_KEY=${GROK_API_KEY}
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+
+      # Trading API Keys
+      - BIRDEYE_API_KEY=${BIRDEYE_API_KEY}
+      - MOONDEV_API_KEY=${MOONDEV_API_KEY}
+      - COINGECKO_API_KEY=${COINGECKO_API_KEY}
+
+      # Blockchain Keys
+      - SOLANA_PRIVATE_KEY=${SOLANA_PRIVATE_KEY}
+      - HYPER_LIQUID_ETH_PRIVATE_KEY=${HYPER_LIQUID_ETH_PRIVATE_KEY}
+      - RPC_ENDPOINT=${RPC_ENDPOINT}
+
+      # Telegram Alerts
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID}
+
+      # Python settings
+      - PYTHONUNBUFFERED=1
+
+    volumes:
+      # Persistent data
+      - ./src/data:/app/src/data
+      - ./logs:/app/logs
+      - ./benchmarks:/app/benchmarks
+
+      # Config (optional, for easy editing)
+      - ./src/config.py:/app/src/config.py:ro
+
+    networks:
+      - moon-network
+
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 4G
+        reservations:
+          cpus: '1.0'
+          memory: 2G
+
+    # Health check
+    healthcheck:
+      test: ["CMD", "python", "-c", "import sys; sys.path.insert(0, '.'); from src import config"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # ============================================
+  # Monitoring Dashboard
+  # ============================================
+  dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: moon-dashboard
+    restart: unless-stopped
+    command: python src/services/monitoring_dashboard.py
+
+    environment:
+      - ANTHROPIC_KEY=${ANTHROPIC_KEY}
+      - BIRDEYE_API_KEY=${BIRDEYE_API_KEY}
+      - PYTHONUNBUFFERED=1
+
+    ports:
+      - "5000:5000"
+
+    volumes:
+      - ./src/data:/app/src/data:ro
+      - ./logs:/app/logs:ro
+
+    networks:
+      - moon-network
+
+    depends_on:
+      - trading-bot
+
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+
+  # ============================================
+  # Prometheus (Optional Monitoring)
+  # ============================================
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: moon-prometheus
+    restart: unless-stopped
+
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+
+    ports:
+      - "9090:9090"
+
+    networks:
+      - moon-network
+
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+
+    profiles:
+      - monitoring
+
+  # ============================================
+  # Grafana (Optional Visualization)
+  # ============================================
+  grafana:
+    image: grafana/grafana:latest
+    container_name: moon-grafana
+    restart: unless-stopped
+
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+      - GF_USERS_ALLOW_SIGN_UP=false
+
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./monitoring/grafana:/etc/grafana/provisioning:ro
+
+    ports:
+      - "3000:3000"
+
+    networks:
+      - moon-network
+
+    depends_on:
+      - prometheus
+
+    profiles:
+      - monitoring
+
+# ============================================
+# Networks
+# ============================================
+networks:
+  moon-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+# ============================================
+# Volumes
+# ============================================
+volumes:
+  prometheus-data:
+    driver: local
+  grafana-data:
+    driver: local
+
+# ============================================
+# Usage Examples:
+# ============================================
+#
+# Start trading bot + dashboard:
+#   docker-compose up -d
+#
+# Start with monitoring (Prometheus + Grafana):
+#   docker-compose --profile monitoring up -d
+#
+# View logs:
+#   docker-compose logs -f trading-bot
+#   docker-compose logs -f dashboard
+#
+# Stop all:
+#   docker-compose down
+#
+# Rebuild after code changes:
+#   docker-compose build
+#   docker-compose up -d
+#
+# Run tests:
+#   docker-compose run --rm trading-bot python scripts/test_system.py
+#
+# Run benchmarks:
+#   docker-compose run --rm trading-bot python scripts/benchmark_performance.py
+#
+# Access dashboard:
+#   http://localhost:5000
+#
+# Access Grafana (if monitoring enabled):
+#   http://localhost:3000
+#   Default credentials: admin / admin (change via GRAFANA_PASSWORD)
