@@ -1,3 +1,7 @@
+"""
+🌙 Moon Dev's Tx Agent
+Monitors and analyzes blockchain transactions
+"""
 '''
 🌙 Moon Dev's Transaction Scanner - Built with love by Moon Dev 🚀
 Watches for new Solana transactions and displays them with fun animations!

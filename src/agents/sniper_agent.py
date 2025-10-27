@@ -1,3 +1,7 @@
+"""
+🌙 Moon Dev's Sniper Agent
+Snipes new token launches on Solana
+"""
 '''
 🌙 Moon Dev's Token Scanner - Built with love by Moon Dev 🚀
 Watches for new Solana token launches and displays them with fun animations!

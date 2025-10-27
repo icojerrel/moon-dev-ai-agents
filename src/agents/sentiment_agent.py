@@ -1,3 +1,7 @@
+"""
+🌙 Moon Dev's Sentiment Agent
+Analyzes market sentiment from social media
+"""
 '''
 🌙 Moon Dev's Sentiment Agent
 Built with love by Moon Dev 🚀
