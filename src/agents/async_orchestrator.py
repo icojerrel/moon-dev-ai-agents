@@ -57,6 +57,14 @@ except ImportError:
     cprint("⚠️  Rust core not available - using Python fallback (slower)", "yellow")
     cprint("   Build with: cd rust_core && maturin develop --release", "yellow")
 
+# Import real-time price feed
+try:
+    from src.services.realtime_price_feed import RealtimePriceFeed
+    REALTIME_FEED_AVAILABLE = True
+except ImportError:
+    REALTIME_FEED_AVAILABLE = False
+    cprint("⚠️  Real-time price feed not available", "yellow")
+
 # Config
 from src import config
 
@@ -73,7 +81,10 @@ class AsyncOrchestrator:
         self.agents: Dict[str, Any] = {}
         self.tasks: List[asyncio.Task] = []
 
-        # Price cache (updated in real-time when Rust core available)
+        # Real-time price feed
+        self.price_feed: Optional[RealtimePriceFeed] = None
+
+        # Price cache (updated in real-time)
         self.price_cache: Dict[str, Dict[str, Any]] = {}
 
         # Performance metrics
@@ -81,7 +92,8 @@ class AsyncOrchestrator:
             "cycles_completed": 0,
             "decisions_made": 0,
             "errors": 0,
-            "avg_cycle_time_ms": 0
+            "avg_cycle_time_ms": 0,
+            "price_updates": 0
         }
 
         cprint("\n" + "="*70, "cyan")
@@ -138,15 +150,47 @@ class AsyncOrchestrator:
             from src.nice_funcs import token_price
             return token_price(token)
 
+    def _on_price_update(self, token: str, price_data: Dict):
+        """
+        Callback for real-time price updates
+
+        Args:
+            token: Token symbol
+            price_data: Price data from feed
+        """
+        self.price_cache[token] = price_data
+        self.metrics['price_updates'] += 1
+
     async def monitor_prices(self):
         """
         Real-time price monitoring loop
 
-        Runs continuously, updating price cache every second
+        Uses WebSocket-based real-time feed when available, falls back to polling
         """
         cprint("\n📈 Starting real-time price monitor...", "cyan")
 
         tokens = getattr(config, 'MONITORED_TOKENS', ['SOL', 'BTC', 'ETH'])
+
+        # Initialize real-time price feed
+        if REALTIME_FEED_AVAILABLE:
+            cprint("🚀 Using WebSocket real-time price feed", "green")
+
+            self.price_feed = RealtimePriceFeed()
+            self.price_feed.add_subscriber(self._on_price_update)
+
+            # Connect and subscribe
+            await self.price_feed.connect()
+            self.price_feed.subscribe(tokens)
+
+            # Start feed (this runs until stopped)
+            try:
+                await self.price_feed.start()
+            except Exception as e:
+                cprint(f"❌ Real-time feed error: {e}", "red")
+                cprint("🔄 Falling back to polling mode", "yellow")
+
+        # Fallback: polling mode
+        cprint("🔄 Using polling mode (5s interval)", "yellow")
 
         while self.running:
             try:
@@ -164,12 +208,14 @@ class AsyncOrchestrator:
                         self.price_cache[token] = {
                             'price': price,
                             'timestamp': datetime.now().isoformat(),
-                            'change': ((price - old_price) / old_price * 100) if old_price else 0
+                            'change_pct': ((price - old_price) / old_price * 100) if old_price else 0
                         }
 
+                        self.metrics['price_updates'] += 1
+
                         # Alert on significant changes
-                        if old_price and abs(self.price_cache[token]['change']) > 2.0:
-                            change = self.price_cache[token]['change']
+                        if old_price and abs(self.price_cache[token]['change_pct']) > 2.0:
+                            change = self.price_cache[token]['change_pct']
                             cprint(
                                 f"🚨 {token}: ${price:.2f} ({change:+.2f}%)",
                                 "yellow" if abs(change) < 5 else "red",
@@ -179,8 +225,8 @@ class AsyncOrchestrator:
                 elapsed = (time.time() - start) * 1000
                 cprint(f"💹 Price update: {len(tokens)} tokens in {elapsed:.0f}ms", "cyan")
 
-                # Update every second (vs 15 minutes in main.py)
-                await asyncio.sleep(1)
+                # Poll every 5 seconds
+                await asyncio.sleep(5)
 
             except Exception as e:
                 cprint(f"❌ Price monitor error: {e}", "red")
