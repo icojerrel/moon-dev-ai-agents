@@ -40,6 +40,11 @@ schedule==1.2.0  # For scheduled tasks
 psutil==5.9.8  # System and process utilities
 asyncio  # Built-in, but noting for async support
 httpx==0.28.1  # Modern HTTP client
+aiohttp==3.9.1  # Async HTTP client for WebSocket and real-time feeds
+
+# ========== Monitoring & Alerts ==========
+flask==3.0.0  # Web dashboard
+flask-cors==4.0.0  # CORS support for dashboard API
 
 # ========== Media Processing ==========
 # For real-time clips and video agents
