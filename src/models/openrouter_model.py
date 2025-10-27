@@ -68,6 +68,18 @@ class OpenRouterModel(BaseModel):
             "output_price": "$0.30/1M tokens",
             "context": "1M"
         },
+        "google/gemini-2.5-pro": {
+            "description": "Gemini 2.5 Pro - Advanced reasoning - 128k context",
+            "input_price": "$1.25/1M tokens",
+            "output_price": "$5.00/1M tokens",
+            "context": "128K"
+        },
+        "google/gemini-2.5-flash": {
+            "description": "Gemini 2.5 Flash - Fast multimodal - 1M context",
+            "input_price": "$0.10/1M tokens",
+            "output_price": "$0.40/1M tokens",
+            "context": "1M"
+        },
 
         # Meta models
         "meta-llama/llama-3.3-70b-instruct": {
@@ -90,6 +102,28 @@ class OpenRouterModel(BaseModel):
             "description": "Mistral Large - Latest Mistral model",
             "input_price": "$2.00/1M tokens",
             "output_price": "$6.00/1M tokens",
+            "context": "128K"
+        },
+
+        # Qwen Models
+        "qwen/qwen3-vl-32b-instruct": {
+            "description": "Qwen 3 VL 32B - Vision & Language - 32k context",
+            "input_price": "$0.25/1M tokens",
+            "output_price": "$0.25/1M tokens",
+            "context": "32K"
+        },
+        "qwen/qwen3-max": {
+            "description": "Qwen 3 Max - Flagship model - 32k context",
+            "input_price": "$1.00/1M tokens",
+            "output_price": "$1.00/1M tokens",
+            "context": "32K"
+        },
+
+        # GLM Models
+        "z-ai/glm-4.6": {
+            "description": "GLM 4.6 - Zhipu AI - 128k context",
+            "input_price": "$0.50/1M tokens",
+            "output_price": "$0.50/1M tokens",
             "context": "128K"
         },
 

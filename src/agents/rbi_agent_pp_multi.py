@@ -128,40 +128,41 @@ rate_limiter = Semaphore(MAX_PARALLEL_THREADS)
 # OpenRouter Models (just set type="openrouter" and pick any model below):
 # - Gemini: google/gemini-2.5-pro, google/gemini-2.5-flash
 # - Qwen: qwen/qwen3-vl-32b-instruct, qwen/qwen3-max
-# - DeepSeek: deepseek/deepseek-r1-0528
-# - OpenAI: openai/gpt-4.5-preview, openai/gpt-5, openai/gpt-5-mini, openai/gpt-5-nano
-# - Claude: anthropic/claude-sonnet-4.5, anthropic/claude-haiku-4.5, anthropic/claude-opus-4.1
+# - DeepSeek: deepseek/deepseek-r1
+# - OpenAI: openai/gpt-4o, openai/gpt-4o-mini, openai/o1-mini
+# - Claude: anthropic/claude-3.5-sonnet, anthropic/claude-3-5-haiku, anthropic/claude-3-opus
 # - GLM: z-ai/glm-4.6
-# See src/models/openrouter_model.py for ALL available models!
+# - Meta: meta-llama/llama-3.3-70b-instruct
+# See src/models/openrouter_model.py for ALL 200+ available models!
 
-# 🧠 RESEARCH: Grok 4 Fast Reasoning (xAI's blazing fast model!)
+# 🧠 RESEARCH: Using OpenRouter with Qwen
 RESEARCH_CONFIG = {
-    "type": "xai",
-    "name": "grok-4-fast-reasoning"
+    "type": "openrouter",
+    "name": "qwen/qwen3-vl-32b-instruct"
 }
 
 # 💻 BACKTEST CODE GEN: Grok 4 Fast Reasoning (xAI's blazing fast model!)
 BACKTEST_CONFIG = {
-    "type": "xai",
-    "name": "grok-4-fast-reasoning"
+    "type": "openrouter",
+    "name": "qwen/qwen3-vl-32b-instruct"
 }
 
 # 🐛 DEBUGGING: Grok 4 Fast Reasoning (xAI's blazing fast model!)
 DEBUG_CONFIG = {
-    "type": "xai",
-    "name": "grok-4-fast-reasoning"
+    "type": "openrouter",
+    "name": "qwen/qwen3-vl-32b-instruct"
 }
 
 # 📦 PACKAGE CHECK: Grok 4 Fast Reasoning (xAI's blazing fast model!)
 PACKAGE_CONFIG = {
-    "type": "xai",
-    "name": "grok-4-fast-reasoning"
+    "type": "openrouter",
+    "name": "qwen/qwen3-vl-32b-instruct"
 }
 
 # 🚀 OPTIMIZATION: Grok 4 Fast Reasoning (xAI's blazing fast model!)
 OPTIMIZE_CONFIG = {
-    "type": "xai",
-    "name": "grok-4-fast-reasoning"
+    "type": "openrouter",
+    "name": "qwen/qwen3-vl-32b-instruct"
 }
 
 # 🎯 PROFIT TARGET CONFIGURATION
