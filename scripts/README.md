@@ -4,9 +4,49 @@ Utility scripts for Moon Dev AI Agents.
 
 ## Available Scripts
 
-### `validate_config.py` - Configuration Validator
+### 1. `validate_config.py` - Configuration Validator ✅
 
 Comprehensive validation script that checks your setup before running agents.
+
+### 2. `test_apis.py` - API Connectivity Tester 🔌
+
+Tests all configured API endpoints to verify connectivity and authentication.
+
+**What It Tests:**
+- AI Providers: Anthropic, OpenAI, Groq
+- Trading APIs: BirdEye, Solana RPC, CoinGecko
+
+**Usage:**
+```bash
+python scripts/test_apis.py
+```
+
+**Exit Codes:** `0` = all working, `1` = some failed
+
+### 3. `check_agents.py` - Agent Health Checker 🏥
+
+Analyzes all agent files for structure, best practices, and potential issues.
+
+**What It Checks:**
+- Python syntax validity
+- File length (< 800 lines recommended)
+- Standalone execution capability
+- Error handling
+- AI usage patterns
+- Documentation quality
+
+**Usage:**
+```bash
+python scripts/check_agents.py
+```
+
+**Output:** Health report for all 31+ agents with status breakdown
+
+---
+
+## `validate_config.py` - Details
+
+### Configuration Validator
 
 #### What It Checks
 
@@ -135,15 +175,54 @@ fi
 
 For these, you need to run the actual agents.
 
+## Script Summary
+
+| Script | Purpose | Status |
+|--------|---------|--------|
+| `validate_config.py` | Validate setup | ✅ Available |
+| `test_apis.py` | Test API connectivity | ✅ Available |
+| `check_agents.py` | Analyze agent health | ✅ Available |
+| `backup_data.py` | Backup agent data | 🔜 Planned |
+| `rotate_keys.py` | Rotate API keys | 🔜 Planned |
+| `clean_data.py` | Clean old data | 🔜 Planned |
+
+## Recommended Usage Flow
+
+### Before First Run
+```bash
+# 1. Validate configuration
+python scripts/validate_config.py
+
+# 2. Test API connections
+python scripts/test_apis.py
+
+# 3. Check agent health
+python scripts/check_agents.py
+
+# 4. If all pass, run agents
+python src/main.py
+```
+
+### Regular Maintenance
+```bash
+# Weekly: Check agent health
+python scripts/check_agents.py
+
+# Monthly: Validate config
+python scripts/validate_config.py
+
+# As needed: Test APIs
+python scripts/test_apis.py
+```
+
 ## Future Scripts
 
 ### Coming Soon
 
-- `check_health.py` - Live system health monitoring
 - `backup_data.py` - Backup agent data and strategies
 - `rotate_keys.py` - Safely rotate API keys
-- `test_apis.py` - Test API connectivity
 - `clean_data.py` - Clean old agent data files
+- `benchmark_agents.py` - Performance benchmarking
 
 ## Contributing
 
