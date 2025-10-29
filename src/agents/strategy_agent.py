@@ -280,3 +280,13 @@ class StrategyAgent:
         except Exception as e:
             print(f"❌ Error executing strategy signals: {str(e)}")
             print("🔧 Moon Dev suggests checking the logs and trying again!") 
+
+if __name__ == "__main__":
+    """Run agent standalone"""
+    try:
+        agent = Agent()
+        agent.run()
+    except KeyboardInterrupt:
+        print("\n👋 Agent stopped by user")
+    except Exception as e:
+        print(f"❌ Error: {e}")

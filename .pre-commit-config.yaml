@@ -1,0 +1,112 @@
+# 🌙 Moon Dev Pre-commit Hooks Configuration
+# Helps catch issues before committing
+
+repos:
+  # Python code formatting
+  - repo: https://github.com/psf/black
+    rev: 23.12.1
+    hooks:
+      - id: black
+        language_version: python3.10
+        args: ['--line-length=127']
+        exclude: '^(src/data/|docs/|\.venv/)'
+
+  # Python import sorting
+  - repo: https://github.com/pycqa/isort
+    rev: 5.13.2
+    hooks:
+      - id: isort
+        args: ['--profile', 'black', '--line-length', '127']
+        exclude: '^(src/data/|docs/|\.venv/)'
+
+  # Python linting
+  - repo: https://github.com/pycqa/flake8
+    rev: 7.0.0
+    hooks:
+      - id: flake8
+        args: [
+          '--max-line-length=127',
+          '--extend-ignore=E203,E501,W503',
+          '--exclude=src/data/*,docs/*,.venv/*'
+        ]
+
+  # Security checks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      # Prevent committing large files
+      - id: check-added-large-files
+        args: ['--maxkb=1000']
+
+      # Check for merge conflict markers
+      - id: check-merge-conflict
+
+      # Check YAML syntax
+      - id: check-yaml
+        exclude: '^\.github/workflows/'
+        args: ['--allow-multiple-documents']
+
+      # Check JSON syntax
+      - id: check-json
+
+      # Fix trailing whitespace
+      - id: trailing-whitespace
+        exclude: '^(\.md|\.txt)$'
+
+      # Fix end of files
+      - id: end-of-file-fixer
+        exclude: '^(src/data/|\.md|\.txt)$'
+
+      # Detect private keys
+      - id: detect-private-key
+
+      # Check case conflicts
+      - id: check-case-conflict
+
+  # Secrets detection
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.4.0
+    hooks:
+      - id: detect-secrets
+        args: ['--baseline', '.secrets.baseline']
+        exclude: '^(\.env\.example|package-lock\.json|poetry\.lock)$'
+
+  # Markdown linting
+  - repo: https://github.com/igorshubovych/markdownlint-cli
+    rev: v0.38.0
+    hooks:
+      - id: markdownlint
+        args: ['--fix']
+        exclude: '^(src/data/|node_modules/)'
+
+# Global exclusions
+exclude: |
+  (?x)^(
+    src/data/.*|
+    \.venv/.*|
+    \.git/.*|
+    __pycache__/.*|
+    .*\.pyc|
+    .*\.pyo|
+    .*\.egg-info/.*
+  )$
+
+# Installation and usage:
+#
+# 1. Install pre-commit:
+#    pip install pre-commit
+#
+# 2. Install hooks:
+#    pre-commit install
+#
+# 3. (Optional) Run on all files:
+#    pre-commit run --all-files
+#
+# 4. Update hooks:
+#    pre-commit autoupdate
+#
+# To skip hooks for a specific commit:
+#    git commit --no-verify -m "message"
+#
+# To temporarily disable a specific hook:
+#    SKIP=flake8 git commit -m "message"

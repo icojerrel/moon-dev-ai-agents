@@ -1,3 +1,7 @@
+"""
+🌙 Moon Dev's Solana Agent
+Analyzes Solana meme tokens for trading opportunities
+"""
 '''
 🌙 Moon Dev's Solana Analysis Agent - Built with love by Moon Dev 🚀
 Analyzes token launches and transactions to find the best opportunities!

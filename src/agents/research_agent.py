@@ -1,3 +1,7 @@
+"""
+🌙 Moon Dev's Research Agent
+Researches trading strategies and market conditions
+"""
 '''
 🌙 Moon Dev's Research Agent 🌙
 This agent automatically generates trading strategy ideas and logs them to both CSV and ideas.txt

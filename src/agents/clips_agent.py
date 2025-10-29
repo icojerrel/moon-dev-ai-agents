@@ -1,3 +1,7 @@
+"""
+🌙 Moon Dev's Clips Agent
+Creates video clips from longer content
+"""
 '''
 this ai agent will be able to take long videos and make short videos
 

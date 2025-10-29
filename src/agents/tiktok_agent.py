@@ -1,3 +1,7 @@
+"""
+🌙 Moon Dev's Tiktok Agent
+Extracts consumer insights from TikTok for market analysis
+"""
 '''
 This AI agent will be able to watch TikTok and pull alpha from the comment section. 
 
