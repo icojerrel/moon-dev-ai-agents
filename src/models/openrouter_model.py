@@ -9,6 +9,9 @@ Compatible with OpenAI API format.
 from openai import OpenAI
 from termcolor import cprint
 from .base_model import BaseModel, ModelResponse
+import hashlib
+import json
+from datetime import datetime, timedelta
 
 class OpenRouterModel(BaseModel):
     """Implementation for OpenRouter's unified model access"""
@@ -128,6 +131,14 @@ class OpenRouterModel(BaseModel):
         """
         self.model_name = model_name
         self.max_tokens = kwargs.get('max_tokens', 4096)
+
+        # Initialize response cache for cost optimization
+        self._cache = {}
+        self._cache_ttl = timedelta(minutes=kwargs.get('cache_ttl_minutes', 15))
+        self._cache_enabled = kwargs.get('enable_cache', True)
+        self._cache_hits = 0
+        self._cache_misses = 0
+
         super().__init__(api_key, **kwargs)
 
     def initialize_client(self, **kwargs) -> None:
@@ -151,21 +162,87 @@ class OpenRouterModel(BaseModel):
             cprint(f"❌ Failed to initialize OpenRouter model: {str(e)}", "red")
             self.client = None
 
+    def _get_cache_key(self, system_prompt, user_content, temperature, max_tokens):
+        """Generate cache key from request parameters"""
+        cache_data = {
+            'model': self.model_name,
+            'system': system_prompt,
+            'user': user_content,
+            'temp': temperature,
+            'max_tokens': max_tokens
+        }
+        cache_string = json.dumps(cache_data, sort_keys=True)
+        return hashlib.md5(cache_string.encode()).hexdigest()
+
+    def _get_from_cache(self, cache_key):
+        """Get response from cache if available and fresh"""
+        if not self._cache_enabled:
+            return None
+
+        if cache_key in self._cache:
+            response, timestamp = self._cache[cache_key]
+            if datetime.now() - timestamp < self._cache_ttl:
+                self._cache_hits += 1
+                cprint(f"💾 Cache HIT! Saved API call (hit rate: {self._get_cache_hit_rate():.1f}%)", "green")
+                return response
+            else:
+                # Expired entry
+                del self._cache[cache_key]
+
+        self._cache_misses += 1
+        return None
+
+    def _add_to_cache(self, cache_key, response):
+        """Add response to cache"""
+        if self._cache_enabled:
+            self._cache[cache_key] = (response, datetime.now())
+
+    def _get_cache_hit_rate(self):
+        """Calculate cache hit rate percentage"""
+        total = self._cache_hits + self._cache_misses
+        if total == 0:
+            return 0.0
+        return (self._cache_hits / total) * 100
+
+    def get_cache_stats(self):
+        """Get cache statistics"""
+        return {
+            'enabled': self._cache_enabled,
+            'hits': self._cache_hits,
+            'misses': self._cache_misses,
+            'hit_rate': f"{self._get_cache_hit_rate():.1f}%",
+            'entries': len(self._cache),
+            'ttl_minutes': self._cache_ttl.total_seconds() / 60
+        }
+
+    def clear_cache(self):
+        """Clear the response cache"""
+        self._cache.clear()
+        cprint("🗑️ OpenRouter cache cleared", "yellow")
+
     def generate_response(self, system_prompt, user_content, temperature=0.7, max_tokens=None, **kwargs):
         """
-        Generate a response using OpenRouter
+        Generate a response using OpenRouter with intelligent caching
 
         Args:
             system_prompt: System instructions
             user_content: User message
             temperature: Sampling temperature (0-2)
             max_tokens: Maximum tokens to generate
-            **kwargs: Additional parameters
+            **kwargs: Additional parameters (use_cache=True to override cache settings)
 
         Returns:
             ModelResponse object with content and metadata
         """
         try:
+            # Check cache first (unless explicitly disabled)
+            use_cache = kwargs.get('use_cache', self._cache_enabled)
+            if use_cache:
+                cache_key = self._get_cache_key(system_prompt, user_content, temperature, max_tokens)
+                cached_response = self._get_from_cache(cache_key)
+                if cached_response:
+                    return cached_response
+
             messages = [
                 {
                     "role": "system",
@@ -225,12 +302,20 @@ class OpenRouterModel(BaseModel):
             if usage:
                 cprint(f"📊 Tokens used: {usage['total_tokens']} (prompt: {usage['prompt_tokens']}, completion: {usage['completion_tokens']})", "cyan")
 
-            return ModelResponse(
+            # Create response object
+            model_response = ModelResponse(
                 content=content_text,
                 raw_response=response,
                 model_name=self.model_name,
                 usage=usage
             )
+
+            # Add to cache if enabled
+            if use_cache:
+                self._add_to_cache(cache_key, model_response)
+                cprint(f"💾 Response cached (cache entries: {len(self._cache)})", "cyan")
+
+            return model_response
 
         except Exception as e:
             cprint(f"❌ OpenRouter generation error: {repr(e)}", "red")

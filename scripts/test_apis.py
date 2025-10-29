@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 """
-🌙 Moon Dev API Connectivity Tester
+🌙 Moon Dev API Connectivity Tester with Smart Retry Logic
 Tests API connections to verify keys and connectivity
+Enhanced with automatic retry for transient failures
 """
 
 import os
 import sys
 from pathlib import Path
+import time
 
 # Try to import colored output
 try:
@@ -26,9 +28,39 @@ try:
 except ImportError:
     cprint("⚠️  python-dotenv not installed", "yellow")
 
+# Try to import our error handling utilities
+try:
+    from utils.error_handling import retry_on_error, RetryConfig
+    RETRY_AVAILABLE = True
+    cprint("✨ Enhanced with smart retry logic", "green")
+except ImportError:
+    RETRY_AVAILABLE = False
+    # Fallback: simple retry decorator
+    def retry_on_error(max_retries=3, delay_seconds=2, backoff=2, exceptions=(Exception,), on_retry=None):
+        """Fallback retry decorator if utils not available"""
+        def decorator(func):
+            def wrapper(*args, **kwargs):
+                last_exception = None
+                for attempt in range(max_retries):
+                    try:
+                        return func(*args, **kwargs)
+                    except exceptions as e:
+                        last_exception = e
+                        if attempt < max_retries - 1:
+                            wait_time = delay_seconds * (backoff ** attempt)
+                            cprint(f"  ⚠️  Attempt {attempt + 1} failed, retrying in {wait_time}s...", "yellow")
+                            time.sleep(wait_time)
+                        else:
+                            raise
+                if last_exception:
+                    raise last_exception
+            return wrapper
+        return decorator
 
+
+@retry_on_error(max_retries=3, delay_seconds=2, backoff=1.5)
 def test_anthropic():
-    """Test Anthropic (Claude) API"""
+    """Test Anthropic (Claude) API with automatic retry"""
     cprint("\n🔍 Testing Anthropic API...", "cyan")
 
     api_key = os.getenv('ANTHROPIC_KEY')
@@ -59,8 +91,9 @@ def test_anthropic():
         return False
 
 
+@retry_on_error(max_retries=3, delay_seconds=2, backoff=1.5)
 def test_openai():
-    """Test OpenAI API"""
+    """Test OpenAI API with automatic retry"""
     cprint("\n🔍 Testing OpenAI API...", "cyan")
 
     api_key = os.getenv('OPENAI_KEY')
@@ -91,8 +124,9 @@ def test_openai():
         return False
 
 
+@retry_on_error(max_retries=3, delay_seconds=2, backoff=1.5)
 def test_groq():
-    """Test Groq API"""
+    """Test Groq API with automatic retry"""
     cprint("\n🔍 Testing Groq API...", "cyan")
 
     api_key = os.getenv('GROQ_API_KEY')
@@ -123,8 +157,9 @@ def test_groq():
         return False
 
 
+@retry_on_error(max_retries=3, delay_seconds=2, backoff=1.5)
 def test_birdeye():
-    """Test BirdEye API"""
+    """Test BirdEye API with automatic retry"""
     cprint("\n🔍 Testing BirdEye API...", "cyan")
 
     api_key = os.getenv('BIRDEYE_API_KEY')
@@ -160,8 +195,9 @@ def test_birdeye():
         return False
 
 
+@retry_on_error(max_retries=3, delay_seconds=2, backoff=1.5)
 def test_rpc():
-    """Test Solana RPC endpoint"""
+    """Test Solana RPC endpoint with automatic retry"""
     cprint("\n🔍 Testing Solana RPC...", "cyan")
 
     rpc_endpoint = os.getenv('RPC_ENDPOINT')
@@ -200,8 +236,9 @@ def test_rpc():
         return False
 
 
+@retry_on_error(max_retries=3, delay_seconds=2, backoff=1.5)
 def test_coingecko():
-    """Test CoinGecko API"""
+    """Test CoinGecko API with automatic retry"""
     cprint("\n🔍 Testing CoinGecko API...", "cyan")
 
     api_key = os.getenv('COINGECKO_API_KEY')

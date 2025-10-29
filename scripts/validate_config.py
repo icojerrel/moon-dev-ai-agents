@@ -307,6 +307,63 @@ def validate_file_structure():
     return len(missing_files) == 0 and len(missing_dirs) == 0
 
 
+def validate_performance():
+    """Check performance utilities and cache system"""
+    cprint("\n🚀 Checking Performance Infrastructure...", "cyan")
+
+    checks_passed = True
+
+    # Check if cache utilities are available
+    try:
+        from utils.cache_manager import (
+            market_data_cache,
+            token_metadata_cache,
+            ohlcv_cache,
+            wallet_cache,
+            print_all_cache_stats
+        )
+        cprint("  ✅ Cache system available", "green")
+
+        # Show cache configurations
+        caches = {
+            'Market Data': market_data_cache,
+            'Token Metadata': token_metadata_cache,
+            'OHLCV Data': ohlcv_cache,
+            'Wallet/Position': wallet_cache
+        }
+
+        cprint("\n  📊 Cache Configurations:", "cyan")
+        for name, cache in caches.items():
+            stats = cache.get_stats()
+            ttl = int(stats['ttl_minutes']) if hasattr(cache, 'default_ttl') else 'N/A'
+            cprint(f"    • {name}: TTL={cache.default_ttl.total_seconds()/60:.0f}min, Entries={stats['entries']}, Hit Rate={stats['hit_rate']}", "white")
+
+    except ImportError as e:
+        cprint(f"  ⚠️  Cache utilities not available: {e}", "yellow")
+        cprint("    Cache system is optional but recommended for performance", "yellow")
+
+    # Check if error handling utilities are available
+    try:
+        from utils.error_handling import (
+            retry_on_error,
+            safe_api_call,
+            RetryConfig
+        )
+        cprint("  ✅ Error handling utilities available", "green")
+        cprint("    • Retry decorators: Available", "white")
+        cprint("    • Safe API calls: Available", "white")
+        cprint("    • Pre-configured profiles: Available", "white")
+
+    except ImportError:
+        cprint("  ⚠️  Error handling utilities not available", "yellow")
+        cprint("    These utilities are optional but improve reliability", "yellow")
+
+    # Performance utilities are optional, so we always pass
+    cprint("\n✅ Performance infrastructure check complete", "green")
+    cprint("   (Note: Performance utilities are optional enhancements)", "cyan")
+    return True
+
+
 def main():
     """Run all validations"""
     cprint("\n" + "="*60, "cyan")
@@ -318,6 +375,7 @@ def main():
         'Dependencies': validate_dependencies(),
         'Environment Variables': validate_environment_variables(),
         'Configuration': validate_config(),
+        'Performance Infrastructure': validate_performance(),
     }
 
     # Summary
