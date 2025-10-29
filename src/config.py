@@ -40,9 +40,7 @@ slippage = 199  # Slippage settings
 # Risk Management Settings 🛡️
 CASH_PERCENTAGE = 20  # Minimum % to keep in USDC as safety buffer (0-100)
 MAX_POSITION_PERCENTAGE = 30  # Maximum % allocation per position (0-100)
-STOPLOSS_PRICE = 1 # NOT USED YET 1/5/25    
-BREAKOUT_PRICE = .0001 # NOT USED YET 1/5/25
-SLEEP_AFTER_CLOSE = 600  # Prevent overtrading
+SLEEP_AFTER_CLOSE = 600  # Prevent overtrading (seconds)
 
 MAX_LOSS_GAIN_CHECK_HOURS = 12  # How far back to check for max loss/gain limits (in hours)
 SLEEP_BETWEEN_RUNS_MINUTES = 15  # How long to sleep between agent runs 🕒
@@ -85,9 +83,10 @@ AI_MODEL = "claude-3-haiku-20240307"  # Model Options:
 AI_MAX_TOKENS = 1024  # Max tokens for response
 AI_TEMPERATURE = 0.7  # Creativity vs precision (0-1)
 
-# Trading Strategy Agent Settings - MAY NOT BE USED YET 1/5/25
-ENABLE_STRATEGIES = True  # Set this to True to use strategies
-STRATEGY_MIN_CONFIDENCE = 0.7  # Minimum confidence to act on strategy signals
+# Trading Strategy Agent Settings
+# Note: Strategy system is partially implemented. Enable at own risk.
+ENABLE_STRATEGIES = False  # Set to True to enable strategy-based trading (experimental)
+STRATEGY_MIN_CONFIDENCE = 0.7  # Minimum confidence to act on strategy signals (0.0-1.0)
 
 # Sleep time between main agent runs
 SLEEP_BETWEEN_RUNS_MINUTES = 15  # How long to sleep between agent runs 🕒
@@ -105,7 +104,33 @@ REALTIME_CLIPS_AI_MODEL = 'groq'  # Model type: groq, openai, claude, deepseek, 
 REALTIME_CLIPS_AI_MODEL_NAME = None  # None = use default for model type
 REALTIME_CLIPS_TWITTER = True  # Auto-open Twitter compose after clip
 
-# Future variables (not active yet) 🔮
+# ═══════════════════════════════════════════════════════════════════
+# EXPERIMENTAL / PLANNED FEATURES (Not Currently Functional)
+# ═══════════════════════════════════════════════════════════════════
+# These variables are placeholders for planned features.
+# Changing them will have NO EFFECT on current system behavior.
+
+EXPERIMENTAL_FEATURES = {
+    'stop_loss': {
+        'enabled': False,
+        'stop_loss_percentage': -0.24,  # Planned: Auto stop-loss at 24% loss
+        'stop_loss_price': 1,           # Planned: Price-based stop-loss
+        'status': 'Planned for future release'
+    },
+    'breakout_trading': {
+        'enabled': False,
+        'breakout_price': 0.0001,       # Planned: Breakout price trigger
+        'status': 'Planned for future release'
+    },
+    'advanced_exits': {
+        'enabled': False,
+        'exit_all_positions': False,    # Planned: Emergency exit all
+        'sell_at_multiple': 3,          # Planned: Sell at X times entry
+        'status': 'Planned for future release'
+    }
+}
+
+# Legacy placeholder values (kept for backwards compatibility, not used)
 sell_at_multiple = 3
 USDC_SIZE = 1
 limit = 49

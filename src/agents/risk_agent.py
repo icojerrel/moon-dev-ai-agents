@@ -3,9 +3,10 @@
 Built with love by Moon Dev 🚀
 """
 
-# Model override settings - Adding DeepSeek support
-MODEL_OVERRIDE = "0"  # Set to "deepseek-chat" or "deepseek-reasoner" to use DeepSeek, "0" to use default
-DEEPSEEK_BASE_URL = "https://api.deepseek.com"  # Base URL for DeepSeek API
+# Model Configuration
+# Available types: 'claude', 'groq', 'openai', 'deepseek', 'xai', 'ollama'
+AI_MODEL_TYPE = 'claude'  # Change to preferred model type
+AI_MODEL_NAME = None       # None = use default for model type, or specify model name
 
 # 🛡️ Risk Override Prompt - The Secret Sauce!
 RISK_OVERRIDE_PROMPT = """
@@ -41,13 +42,11 @@ or
 RESPECT_LIMIT: <detailed reason for each position>
 """
 
-import anthropic
 import os
 import pandas as pd
 import json
 from termcolor import colored, cprint
 from dotenv import load_dotenv
-import openai
 from src import config
 from src import nice_funcs as n
 from src.data.ohlcv_collector import collect_all_tokens
@@ -55,7 +54,9 @@ from datetime import datetime, timedelta
 import time
 from src.config import *
 from src.agents.base_agent import BaseAgent
+from src.models.model_factory import model_factory
 import traceback
+import re
 
 # Load environment variables
 load_dotenv()
@@ -64,54 +65,29 @@ class RiskAgent(BaseAgent):
     def __init__(self):
         """Initialize Moon Dev's Risk Agent 🛡️"""
         super().__init__('risk')  # Initialize base agent with type
-        
-        # Set AI parameters - use config values unless overridden
-        self.ai_model = AI_MODEL if AI_MODEL else config.AI_MODEL
-        self.ai_temperature = AI_TEMPERATURE if AI_TEMPERATURE > 0 else config.AI_TEMPERATURE
-        self.ai_max_tokens = AI_MAX_TOKENS if AI_MAX_TOKENS > 0 else config.AI_MAX_TOKENS
-        
-        print(f"🤖 Using AI Model: {self.ai_model}")
-        if AI_MODEL or AI_TEMPERATURE > 0 or AI_MAX_TOKENS > 0:
-            print("⚠️ Note: Using some override settings instead of config.py defaults")
-            if AI_MODEL:
-                print(f"  - Model: {AI_MODEL}")
-            if AI_TEMPERATURE > 0:
-                print(f"  - Temperature: {AI_TEMPERATURE}")
-            if AI_MAX_TOKENS > 0:
-                print(f"  - Max Tokens: {AI_MAX_TOKENS}")
-                
+
         load_dotenv()
-        
-        # Get API keys
-        openai_key = os.getenv("OPENAI_KEY")
-        anthropic_key = os.getenv("ANTHROPIC_KEY")
-        deepseek_key = os.getenv("DEEPSEEK_KEY")
-        
-        if not openai_key:
-            raise ValueError("🚨 OPENAI_KEY not found in environment variables!")
-        if not anthropic_key:
-            raise ValueError("🚨 ANTHROPIC_KEY not found in environment variables!")
-            
-        # Initialize OpenAI client for DeepSeek
-        if deepseek_key and MODEL_OVERRIDE.lower() == "deepseek-chat":
-            self.deepseek_client = openai.OpenAI(
-                api_key=deepseek_key,
-                base_url=DEEPSEEK_BASE_URL
-            )
-            print("🚀 DeepSeek model initialized!")
-        else:
-            self.deepseek_client = None
-            
-        # Initialize Anthropic client
-        self.client = anthropic.Anthropic(api_key=anthropic_key)
-        
+
+        # Initialize AI model via ModelFactory
+        cprint(f"\n🤖 Initializing Risk Agent with {AI_MODEL_TYPE} model...", "cyan")
+        self.model = model_factory.get_model(AI_MODEL_TYPE, AI_MODEL_NAME)
+
+        if not self.model:
+            cprint(f"❌ Failed to initialize {AI_MODEL_TYPE} model!", "red")
+            cprint("Available models:", "yellow")
+            for model_type in model_factory._models.keys():
+                cprint(f"  - {model_type}", "yellow")
+            raise ValueError(f"Failed to initialize {AI_MODEL_TYPE} model!")
+
+        cprint(f"✅ Using model: {self.model.model_name}", "green")
+
         self.override_active = False
         self.last_override_check = None
-        
+
         # Initialize start balance using portfolio value
         self.start_balance = self.get_portfolio_value()
         print(f"🏦 Initial Portfolio Balance: ${self.start_balance:.2f}")
-        
+
         self.current_value = self.start_balance
         cprint("🛡️ Risk Agent initialized!", "white", "on_blue")
         
@@ -278,49 +254,30 @@ class RiskAgent(BaseAgent):
             )
             
             cprint("🤖 AI Agent analyzing market data...", "white", "on_green")
-            
-            # Use DeepSeek if configured
-            if self.deepseek_client and MODEL_OVERRIDE.lower() == "deepseek-chat":
-                print("🚀 Using DeepSeek for analysis...")
-                response = self.deepseek_client.chat.completions.create(
-                    model="deepseek-chat",
-                    messages=[
-                        {"role": "system", "content": "You are Moon Dev's Risk Management AI. Analyze positions and respond with OVERRIDE or RESPECT_LIMIT."},
-                        {"role": "user", "content": prompt}
-                    ],
-                    max_tokens=self.ai_max_tokens,
-                    temperature=self.ai_temperature,
-                    stream=False
-                )
-                response_text = response.choices[0].message.content.strip()
+
+            # Use ModelFactory for AI analysis
+            system_prompt = "You are Moon Dev's Risk Management AI. Analyze positions and respond with OVERRIDE or RESPECT_LIMIT."
+            response = self.model.generate_response(
+                system_prompt=system_prompt,
+                user_content=prompt,
+                temperature=AI_TEMPERATURE,
+                max_tokens=AI_MAX_TOKENS
+            )
+
+            # Handle response format
+            if hasattr(response, 'content'):
+                response_text = response.content
             else:
-                # Use Claude as before
-                print("🤖 Using Claude for analysis...")
-                message = self.client.messages.create(
-                    model=self.ai_model,
-                    max_tokens=self.ai_max_tokens,
-                    temperature=self.ai_temperature,
-                    messages=[{
-                        "role": "user",
-                        "content": prompt
-                    }]
-                )
-                response_text = str(message.content)
-            
-            # Handle TextBlock format if using Claude
-            if 'TextBlock' in response_text:
-                match = re.search(r"text='([^']*)'", response_text)
-                if match:
-                    response_text = match.group(1)
+                response_text = str(response)
             
             self.last_override_check = datetime.now()
             
             # Check if we should override (keep positions open)
             self.override_active = "OVERRIDE" in response_text.upper()
             
-            # Print the AI's reasoning with model info
+            # Print the AI's reasoning
             cprint("\n🧠 Risk Agent Analysis:", "white", "on_blue")
-            cprint(f"Using model: {'DeepSeek' if self.deepseek_client else 'Claude'}", "white", "on_blue")
+            cprint(f"Using model: {self.model.model_name}", "white", "on_blue")
             print(response_text)
             
             if self.override_active:
@@ -495,43 +452,24 @@ Respond with:
 CLOSE_ALL or HOLD_POSITIONS
 Then explain your reasoning.
 """
-            # Use DeepSeek if configured
-            if self.deepseek_client and MODEL_OVERRIDE.lower() == "deepseek-chat":
-                print("🚀 Using DeepSeek for analysis...")
-                response = self.deepseek_client.chat.completions.create(
-                    model="deepseek-chat",
-                    messages=[
-                        {"role": "system", "content": "You are Moon Dev's Risk Management AI. Analyze the breach and decide whether to close positions."},
-                        {"role": "user", "content": prompt}
-                    ],
-                    max_tokens=self.ai_max_tokens,
-                    temperature=self.ai_temperature,
-                    stream=False
-                )
-                response_text = response.choices[0].message.content.strip()
+            # Use ModelFactory for AI analysis
+            system_prompt = "You are Moon Dev's Risk Management AI. Analyze the breach and decide whether to close positions."
+            response = self.model.generate_response(
+                system_prompt=system_prompt,
+                user_content=prompt,
+                temperature=AI_TEMPERATURE,
+                max_tokens=AI_MAX_TOKENS
+            )
+
+            # Handle response format
+            if hasattr(response, 'content'):
+                response_text = response.content
             else:
-                # Use Claude as before
-                print("🤖 Using Claude for analysis...")
-                message = self.client.messages.create(
-                    model=self.ai_model,
-                    max_tokens=self.ai_max_tokens,
-                    temperature=self.ai_temperature,
-                    messages=[{
-                        "role": "user",
-                        "content": prompt
-                    }]
-                )
-                response_text = str(message.content)
-            
-            # Handle TextBlock format if using Claude
-            if 'TextBlock' in response_text:
-                match = re.search(r"text='([^']*)'", response_text)
-                if match:
-                    response_text = match.group(1)
-            
+                response_text = str(response)
+
             print("\n🤖 AI Risk Assessment:")
             print("=" * 50)
-            print(f"Using model: {'DeepSeek' if self.deepseek_client else 'Claude'}")
+            print(f"Using model: {self.model.model_name}")
             print(response_text)
             print("=" * 50)
             
