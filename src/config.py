@@ -83,6 +83,16 @@ AI_MODEL = "claude-3-haiku-20240307"  # Model Options:
 AI_MAX_TOKENS = 1024  # Max tokens for response
 AI_TEMPERATURE = 0.7  # Creativity vs precision (0-1)
 
+# OpenRouter Configuration 🌐 (Cost Optimization - Phase 2)
+# OpenRouter provides access to 100+ AI models with intelligent caching (90% discount on cached prompts)
+AI_MODEL_TYPE = 'openrouter'  # Use OpenRouter for cost optimization
+AI_MODEL_NAME = 'google/gemini-2.0-flash-exp:free'  # FREE tier model! Great for testing
+# Alternative options:
+# AI_MODEL_NAME = 'anthropic/claude-3.5-haiku'  # Same quality as direct, with caching
+# AI_MODEL_NAME = 'openai/gpt-4o-mini'  # Cheap OpenAI model
+# AI_MODEL_NAME = 'deepseek/deepseek-chat'  # Very cost-effective
+# See full list at: https://openrouter.ai/models
+
 # Trading Strategy Agent Settings
 # Note: Strategy system is partially implemented. Enable at own risk.
 ENABLE_STRATEGIES = False  # Set to True to enable strategy-based trading (experimental)
