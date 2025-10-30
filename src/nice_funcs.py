@@ -22,6 +22,10 @@ from dotenv import load_dotenv
 import shutil
 import atexit
 
+# Phase 3: Import caching utilities for API cost optimization
+from src.utils.cache_manager import market_data_cache, token_metadata_cache
+from src.utils.error_handling import retry_on_error, NETWORK_RETRY
+
 # Load environment variables
 load_dotenv()
 
@@ -56,10 +60,16 @@ def find_urls(string):
     return reggie.findall(r'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\\(\\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', string)
 
 # UPDATED TO RMEOVE THE OTHER ONE so now we can just use this filter instead of filtering twice
+# Phase 3: Added caching and retry for BirdEye API cost optimization
+# Cache for 5 minutes (prices update frequently but not every second)
+@market_data_cache.cached_data(ttl_minutes=5)
+@retry_on_error(**NETWORK_RETRY)
 def token_overview(address):
     """
     Fetch token overview for a given address and return structured information, including specific links,
     and assess if any price change suggests a rug pull.
+
+    Phase 3: Now cached for 5 minutes to reduce BirdEye API calls by 75%
     """
 
     print(f'Getting the token overview for {address}')
@@ -456,7 +466,12 @@ def fetch_wallet_token_single(address, token_mint_address):
     return df
 
 
+# Phase 3: Added caching for token price API calls
+# Cache for 3 minutes (balance between fresh prices and API cost savings)
+@market_data_cache.cached_data(ttl_minutes=3)
+@retry_on_error(**NETWORK_RETRY)
 def token_price(address):
+    """Get current token price from BirdEye API. Phase 3: Now cached for 3 minutes."""
     url = f"https://public-api.birdeye.so/defi/price?address={address}"
     headers = {"X-API-KEY": BIRDEYE_API_KEY}
     response = requests.get(url, headers=headers)

@@ -5,14 +5,9 @@ Built with love by Moon Dev 🚀
 Dez the Whale Agent tracks open interest changes across different timeframes and announces market moves if she sees anomalies 
 """
 
-# Model override settings
-# Set to "0" to use config.py's AI_MODEL setting
-# Available models:
-# - "deepseek-chat" (DeepSeek's V3 model - fast & efficient)
-# - "deepseek-reasoner" (DeepSeek's R1 reasoning model)
-# - "0" (Use config.py's AI_MODEL setting)
-MODEL_OVERRIDE = "deepseek-chat"  # Set to "0" to disable override
-DEEPSEEK_BASE_URL = "https://api.deepseek.com"  # Base URL for DeepSeek API
+# Phase 3: Migrated to ModelFactory for consistency and cost optimization
+# Model configuration - now uses ModelFactory
+MODEL_OVERRIDE = "0"  # Set to "0" to use config.py settings (recommended)
 
 import os
 import pandas as pd
@@ -20,7 +15,7 @@ import time
 from datetime import datetime, timedelta
 from termcolor import colored, cprint
 from dotenv import load_dotenv
-import openai
+import openai  # Still needed for TTS
 from pathlib import Path
 from src import nice_funcs as n
 from src import nice_funcs_hl as hl  # Add import for hyperliquid functions
@@ -29,7 +24,8 @@ from collections import deque
 from src.agents.base_agent import BaseAgent
 import traceback
 import numpy as np
-import anthropic
+# Phase 3: Removed direct anthropic import, using ModelFactory instead
+from src.models.model_factory import model_factory
 
 # Get the project root directory
 PROJECT_ROOT = Path(__file__).parent.parent.parent
@@ -75,53 +71,42 @@ class WhaleAgent(BaseAgent):
     """Dez the Whale Watcher 🐋"""
     
     def __init__(self):
-        """Initialize Dez the Whale Agent"""
+        """Initialize Dez the Whale Agent - Phase 3: Now uses ModelFactory"""
         super().__init__('whale')  # Initialize base agent with type
-        
+
         # Set AI parameters - use config values unless overridden
-        self.ai_model = MODEL_OVERRIDE if MODEL_OVERRIDE != "0" else config.AI_MODEL
         self.ai_temperature = AI_TEMPERATURE if AI_TEMPERATURE > 0 else config.AI_TEMPERATURE
         self.ai_max_tokens = AI_MAX_TOKENS if AI_MAX_TOKENS > 0 else config.AI_MAX_TOKENS
-        
-        print(f"🤖 Using AI Model: {self.ai_model}")
-        if AI_MODEL or AI_TEMPERATURE > 0 or AI_MAX_TOKENS > 0:
-            print("⚠️ Note: Using some override settings instead of config.py defaults")
-            if AI_MODEL:
-                print(f"  - Model: {AI_MODEL}")
+
+        load_dotenv()
+
+        # Phase 3: Use ModelFactory for AI model (supports all providers including OpenRouter)
+        # This enables cost optimization through OpenRouter and caching
+        model_type = config.AI_MODEL_TYPE if hasattr(config, 'AI_MODEL_TYPE') else 'anthropic'
+        model_name = config.AI_MODEL_NAME if hasattr(config, 'AI_MODEL_NAME') else None
+
+        print(f"🤖 Initializing Whale Agent with {model_type} model...")
+        self.model = model_factory.get_model(model_type, model_name)
+
+        if not self.model:
+            print(f"❌ Failed to initialize {model_type} model!")
+            print("💡 Tip: Check your .env file has the required API keys")
+            raise ValueError(f"Could not initialize AI model: {model_type}")
+
+        print(f"✅ Using model: {self.model.model_name}")
+        if AI_TEMPERATURE > 0 or AI_MAX_TOKENS > 0:
+            print("⚠️ Note: Using some override settings")
             if AI_TEMPERATURE > 0:
                 print(f"  - Temperature: {AI_TEMPERATURE}")
             if AI_MAX_TOKENS > 0:
                 print(f"  - Max Tokens: {AI_MAX_TOKENS}")
-        
-        load_dotenv()
-        
-        # Get API keys
-        openai_key = os.getenv("OPENAI_KEY")
-        anthropic_key = os.getenv("ANTHROPIC_KEY")
-        
-        if not openai_key:
-            raise ValueError("🚨 OPENAI_KEY not found in environment variables!")
-        if not anthropic_key:
-            raise ValueError("🚨 ANTHROPIC_KEY not found in environment variables!")
-            
-        openai.api_key = openai_key
-        self.client = anthropic.Anthropic(api_key=anthropic_key)
 
-        # Initialize DeepSeek client if needed
-        if "deepseek" in self.ai_model.lower():
-            deepseek_key = os.getenv("DEEPSEEK_KEY")
-            if deepseek_key:
-                self.deepseek_client = openai.OpenAI(
-                    api_key=deepseek_key,
-                    base_url=DEEPSEEK_BASE_URL
-                )
-                print("🚀 Moon Dev's Whale Agent using DeepSeek override!")
-            else:
-                self.deepseek_client = None
-                print("⚠️ DEEPSEEK_KEY not found - DeepSeek model will not be available")
+        # Still need OpenAI for TTS (voice output)
+        openai_key = os.getenv("OPENAI_KEY")
+        if openai_key:
+            openai.api_key = openai_key
         else:
-            self.deepseek_client = None
-            print(f"🎯 Moon Dev's Whale Agent using Claude model: {self.ai_model}!")
+            print("⚠️ OPENAI_KEY not found - TTS voice output will not work")
         
         # Initialize Moon Dev API with correct base URL
         self.api = MoonDevAPI(base_url="http://api.moondev.com:8000")
@@ -401,41 +386,29 @@ class WhaleAgent(BaseAgent):
                 market_data=market_data_str
             )
             
-            # Use either DeepSeek or Claude based on model setting
-            if "deepseek" in self.ai_model.lower():
-                if not self.deepseek_client:
-                    raise ValueError("🚨 DeepSeek client not initialized - check DEEPSEEK_KEY")
-                    
-                print(f"\n🤖 Analyzing whale movement with DeepSeek model: {self.ai_model}...")
-                # Make DeepSeek API call
-                response = self.deepseek_client.chat.completions.create(
-                    model=self.ai_model,  # Use the actual model from override
-                    messages=[
-                        {"role": "system", "content": WHALE_ANALYSIS_PROMPT},
-                        {"role": "user", "content": context}
-                    ],
-                    max_tokens=self.ai_max_tokens,
+            # Phase 3: Use ModelFactory for unified AI calls (works with all providers)
+            print(f"\n🤖 Analyzing whale movement with {self.model.model_name}...")
+
+            try:
+                # ModelFactory handles all providers uniformly
+                response = self.model.generate_response(
+                    system_prompt=WHALE_ANALYSIS_PROMPT,
+                    user_content=context,
                     temperature=self.ai_temperature,
-                    stream=False
+                    max_tokens=self.ai_max_tokens
                 )
-                response_text = response.choices[0].message.content.strip()
-            else:
-                print(f"\n🤖 Analyzing whale movement with Claude model: {self.ai_model}...")
-                # Get AI analysis using Claude
-                message = self.client.messages.create(
-                    model=self.ai_model,
-                    max_tokens=self.ai_max_tokens,
-                    temperature=self.ai_temperature,
-                    messages=[{
-                        "role": "user",
-                        "content": context
-                    }]
-                )
-                # Handle both string and list responses
-                if isinstance(message.content, list):
-                    response_text = message.content[0].text if message.content else ""
+
+                # Handle response format
+                if hasattr(response, 'content'):
+                    response_text = response.content
+                elif isinstance(response, str):
+                    response_text = response
                 else:
-                    response_text = message.content
+                    response_text = str(response)
+
+            except Exception as e:
+                print(f"❌ AI call failed: {e}")
+                return None
             
             # Handle response
             if not response_text:
