@@ -42,9 +42,9 @@ def test_openrouter():
 
     # Test with a simple prompt using different models
     test_models = [
-        "google/gemini-2.0-flash-exp",  # Free model
-        "anthropic/claude-3.5-sonnet",   # Powerful model
-        "deepseek/deepseek-r1",          # Great for trading
+        "anthropic/claude-3.5-sonnet",   # Best balanced model
+        "deepseek/deepseek-r1",          # Great for trading, cheap
+        "openai/gpt-4o-mini",            # Fast and cheap
     ]
 
     for model_name in test_models:
