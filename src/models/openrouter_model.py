@@ -180,6 +180,13 @@ class OpenRouterModel(BaseModel):
             "description": "Cohere's command model with RAG",
             "input_price": "$2.50/1M tokens",
             "output_price": "$10.00/1M tokens"
+        },
+
+        # Moonshot AI Models
+        "moonshotai/kimi-k2-0905": {
+            "description": "Kimi K2 0905 - 1T params MoE, 256k context - Excellent for coding",
+            "input_price": "$1.00/1M tokens",
+            "output_price": "$3.00/1M tokens"
         }
     }
 
