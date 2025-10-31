@@ -38,7 +38,7 @@ class ModelFactory:
     
     # Default models for each type
     DEFAULT_MODELS = {
-        "openrouter": "anthropic/claude-3.5-sonnet",  # OpenRouter default - best balanced model
+        "openrouter": "google/gemini-2.5-flash",  # OpenRouter default - cheap & fast
         "claude": "claude-3-5-haiku-latest",  # Latest fast Claude model
         "groq": "mixtral-8x7b-32768",        # Fast Mixtral model
         "openai": "gpt-4o",                  # Latest GPT-4 Optimized
