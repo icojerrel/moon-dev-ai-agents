@@ -41,11 +41,6 @@ class OpenRouterModel(BaseModel):
             "input_price": "$0.10/1M tokens",
             "output_price": "$0.40/1M tokens"
         },
-        "google/gemini-2.0-flash-exp": {
-            "description": "Gemini 2.0 Flash Experimental - Free tier",
-            "input_price": "FREE",
-            "output_price": "FREE"
-        },
 
         # Zhipu AI GLM Models
         "z-ai/glm-4.6": {
