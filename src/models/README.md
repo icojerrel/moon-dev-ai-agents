@@ -2,15 +2,74 @@
 
 A unified interface for managing multiple AI model providers. This module handles initialization, API key management, and provides a consistent interface for generating responses across different AI models.
 
-## 🔑 Required API Keys
+## 🌟 RECOMMENDED: OpenRouter (One Key for Everything!)
 
-Add these to your `.env` file in the project root:
+**OpenRouter** provides unified access to ALL AI models through a single API key. No need to manage multiple API keys from different providers!
+
+### Why OpenRouter?
+- ✅ **One API key** instead of 6+ separate keys
+- ✅ Access to **100+ models** from all providers (OpenAI, Anthropic, Google, Meta, DeepSeek, xAI, and more)
+- ✅ **Cheaper pricing** on many models compared to direct API access
+- ✅ **Pay-as-you-go** credits - no monthly subscriptions
+- ✅ **Free models** available (like Gemini 2.0 Flash)
+- ✅ **Automatic fallbacks** if a model is down
+- ✅ **Simple billing** - one dashboard for all usage
+
+### Quick Start with OpenRouter
+
+1. **Get your API key**: https://openrouter.ai/keys
+2. **Add to your `.env` file**:
+```env
+OPENROUTER_API_KEY=sk-or-v1-xxxxx    # Your OpenRouter key
+```
+
+3. **Use in your code**:
+```python
+from src.models import model_factory
+
+# Access ANY model through OpenRouter
+model = model_factory.get_model("openrouter", "anthropic/claude-3.5-sonnet")
+# or
+model = model_factory.get_model("openrouter", "openai/gpt-4o")
+# or
+model = model_factory.get_model("openrouter", "deepseek/deepseek-r1")
+# or
+model = model_factory.get_model("openrouter", "google/gemini-2.0-flash-exp")  # FREE!
+
+response = model.generate_response(
+    system_prompt="You are a helpful trading assistant.",
+    user_content="Analyze this chart pattern...",
+    temperature=0.7
+)
+```
+
+### Popular Models via OpenRouter
+
+See full list at: https://openrouter.ai/models
+
+**Best for Trading:**
+- `deepseek/deepseek-r1` - Excellent reasoning, cheap ($0.55/$2.19 per 1M tokens)
+- `anthropic/claude-3.5-sonnet` - Best balanced model ($3/$15 per 1M tokens)
+- `openai/gpt-4o` - Strong reasoning ($2.50/$10 per 1M tokens)
+
+**Best Value:**
+- `google/gemini-2.0-flash-exp` - FREE, 1M context window
+- `meta-llama/llama-3.3-70b-instruct` - $0.35/$0.40 per 1M tokens
+
+**Best for Complex Tasks:**
+- `anthropic/claude-3-opus` - Most powerful ($15/$75 per 1M tokens)
+- `openai/o1` - Advanced reasoning ($15/$60 per 1M tokens)
+
+## 🔑 Alternative: Individual Provider Keys
+
+If you prefer to use direct API access instead of OpenRouter, add these to your `.env` file:
 ```env
 ANTHROPIC_KEY=your_key_here    # For Claude models
 GROQ_API_KEY=your_key_here     # For Groq models (includes Mixtral, Llama, etc.)
 OPENAI_KEY=your_key_here       # For OpenAI models (GPT-4, O1, etc.)
 GEMINI_KEY=your_key_here       # For Gemini models
 DEEPSEEK_KEY=your_key_here     # For DeepSeek models
+GROK_API_KEY=your_key_here     # For xAI Grok models
 ```
 
 ## 🤖 Available Models
