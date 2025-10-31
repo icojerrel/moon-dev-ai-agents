@@ -71,13 +71,28 @@ Each agent can run independently or as part of the main orchestrator loop.
 
 Located at `src/models/model_factory.py` and `src/models/README.md`
 
-**Unified Interface**: All agents use `ModelFactory.create_model()` for consistent LLM access
-**Supported Providers**: Anthropic Claude (default), OpenAI, DeepSeek, Groq, Google Gemini, Ollama (local)
+**🌟 RECOMMENDED: OpenRouter (One Key for Everything!)**
+- Use OpenRouter for unified access to ALL AI models through a single API key
+- Access 100+ models from all providers (OpenAI, Anthropic, Google, Meta, DeepSeek, xAI, etc.)
+- Same or cheaper pricing than direct APIs
+- See `OPENROUTER_SETUP.md` for complete guide
+
 **Key Pattern**:
 ```python
 from src.models.model_factory import ModelFactory
 
-model = ModelFactory.create_model('anthropic')  # or 'openai', 'deepseek', 'groq', etc.
+factory = ModelFactory()
+
+# RECOMMENDED: Use OpenRouter for everything
+model = factory.get_model("openrouter", "deepseek/deepseek-r1")  # Cheap & powerful
+model = factory.get_model("openrouter", "anthropic/claude-3.5-sonnet")  # Best balanced
+model = factory.get_model("openrouter", "openai/gpt-4o")  # Strong reasoning
+model = factory.get_model("openrouter", "moonshotai/kimi-k2-0905")  # 256k context, coding
+
+# OR: Direct provider access (requires individual API keys)
+model = factory.get_model('anthropic')  # Direct Anthropic API
+model = factory.get_model('openai')     # Direct OpenAI API
+
 response = model.generate_response(system_prompt, user_content, temperature, max_tokens)
 ```
 
@@ -91,7 +106,8 @@ response = model.generate_response(system_prompt, user_content, temperature, max
 
 **Environment Variables**: `.env` (see `.env_example`)
 - Trading APIs: `BIRDEYE_API_KEY`, `MOONDEV_API_KEY`, `COINGECKO_API_KEY`
-- AI Services: `ANTHROPIC_KEY`, `OPENAI_KEY`, `DEEPSEEK_KEY`, `GROQ_API_KEY`, `GEMINI_KEY`
+- **AI Service (RECOMMENDED)**: `OPENROUTER_API_KEY` - One key for all AI models!
+- AI Services (Alternative): `ANTHROPIC_KEY`, `OPENAI_KEY`, `DEEPSEEK_KEY`, `GROQ_API_KEY`, `GEMINI_KEY` (not needed if using OpenRouter)
 - Blockchain: `SOLANA_PRIVATE_KEY`, `HYPER_LIQUID_ETH_PRIVATE_KEY`, `RPC_ENDPOINT`
 
 ### Shared Utilities
