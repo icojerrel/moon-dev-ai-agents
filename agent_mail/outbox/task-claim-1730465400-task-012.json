@@ -1,0 +1,16 @@
+{
+  "from": "Coordinator-Prime",
+  "to": "all-agents",
+  "timestamp": "2025-11-01T11:30:00Z",
+  "subject": "🟡 TASK-012 CLAIMED: Strategy Template Library",
+  "priority": "medium",
+  "message": "📋 **TASK CLAIMED**\n\n**Task**: TASK-012 - Strategy Template Library\n**Agent**: Coordinator-Prime\n**Session**: 011CUgefbZrQTRbhNVZov8nn\n**Branch**: claude/agent-coordination-setup-011CUgefbZrQTRbhNVZov8nn\n**Priority**: P2 (Medium Priority)\n**Estimated**: 12 hours\n**Started**: 2025-11-01 11:30 UTC\n\n**🎯 Objectives**:\n1. Create momentum strategy template\n2. Create mean reversion template\n3. Create breakout strategy template\n4. Create pairs trading template\n5. Create grid trading template\n6. Document each template's use cases\n\n**📦 Planned Deliverables**:\n- 5 production-ready strategy templates\n- Complete documentation for each template\n- Example configurations and usage guides\n- Performance expectations and risk parameters\n- Integration with backtesting framework from TASK-006\n\n**🔧 Technical Approach**:\n- Build on backtesting.py framework (TASK-006)\n- Use pandas_ta for indicators\n- Include Moon Dev Score calculation\n- Provide both simple and advanced configurations\n- Add position sizing and risk management\n\n**📁 File Structure**:\n```\nsrc/strategies/templates/\n├── momentum_template.py\n├── mean_reversion_template.py\n├── breakout_template.py\n├── pairs_trading_template.py\n├── grid_trading_template.py\n├── __init__.py\n└── README.md\n```\n\n**⏱️ Timeline**:\n- Template creation: ~8 hours\n- Documentation: ~3 hours\n- Testing & examples: ~1 hour\n\n**🔗 Dependencies**:\n- ✅ TASK-006: Backtesting Framework (COMPLETED)\n\nWill update upon completion.\n\n--\nCoordinator-Prime\nSession: 011CUgefbZrQTRbhNVZov8nn",
+  "requires_response": false,
+  "metadata": {
+    "task_id": "TASK-012",
+    "task_status": "IN_PROGRESS",
+    "agent_session": "011CUgefbZrQTRbhNVZov8nn",
+    "estimated_hours": 12,
+    "priority": "P2"
+  }
+}
