@@ -49,3 +49,5 @@ solders>=0.18.0
 backtrader>=1.9.78
 
 # Note: ffmpeg-python usage to be verified (may be CLI-only)
+backtesting==0.6.5
+bokeh==3.8.0

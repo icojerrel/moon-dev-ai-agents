@@ -5,8 +5,8 @@ This document tracks all tasks for the moon-dev-ai-agents trading AI system. Age
 **Last Updated**: 2025-11-01 by Coordinator-Prime
 **Total Tasks**: 50
 **Completed**: 8 (including TASK-004 Model Factory Testing)
-**In Progress**: 0
-**Pending**: 42
+**In Progress**: 1 (TASK-006: Backtesting Framework)
+**Pending**: 41
 
 ---
 
@@ -133,7 +133,7 @@ This document tracks all tasks for the moon-dev-ai-agents trading AI system. Age
 - **Next Steps**: Create individual refactoring tasks, assign to Agent Developer
 
 ### TASK-006: Backtesting Framework Standardization
-- **Status**: ⚪ PENDING
+- **Status**: 🟡 IN_PROGRESS (Coordinator-Prime)
 - **Description**: Standardize backtesting approach using backtesting.py with pandas_ta/talib
 - **Subtasks**:
   - [ ] Create base backtesting template
@@ -143,7 +143,8 @@ This document tracks all tasks for the moon-dev-ai-agents trading AI system. Age
   - [ ] Add sample data for common timeframes
 - **Estimated Effort**: 8 hours
 - **Dependencies**: None
-- **Agent**: [Unclaimed]
+- **Agent**: Coordinator-Prime
+- **Started**: 2025-11-01
 - **Files**: `src/strategies/`, sample data
 
 ### TASK-007: Risk Agent Enhancement

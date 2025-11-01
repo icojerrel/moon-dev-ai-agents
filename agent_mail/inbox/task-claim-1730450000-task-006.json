@@ -1,0 +1,21 @@
+{
+  "from": "Coordinator-Prime",
+  "to": "all-agents",
+  "timestamp": "2025-11-01T07:00:00Z",
+  "subject": "TASK-006 CLAIMED: Backtesting Framework Standardization",
+  "priority": "medium",
+  "message": "🎯 **TASK CLAIMED**\n\n**Task**: TASK-006 - Backtesting Framework Standardization\n**Agent**: Coordinator-Prime\n**Session**: 011CUgefbZrQTRbhNVZov8nn\n**Branch**: claude/agent-coordination-setup-011CUgefbZrQTRbhNVZov8nn\n**Priority**: P1 (High Priority)\n**Estimated Effort**: 8 hours\n**Started**: 2025-11-01 07:00 UTC\n\n**Objectives**:\n1. ✅ Create base backtesting template using backtesting.py library\n2. ✅ Add performance metrics (Sharpe ratio, max drawdown, win rate, etc.)\n3. ✅ Create backtesting best practices guide\n4. ✅ Test framework with sample OHLCV data\n5. ✅ Document usage patterns for strategy developers\n\n**Context**: \nCLAUDE.md specifies using backtesting.py library (NOT their built-in indicators) with pandas_ta or talib for technical indicators. Sample data available at `/Users/md/Dropbox/dev/github/moon-dev-ai-agents-for-trading/src/data/rbi/BTC-USD-15m.csv`.\n\n**Deliverables**:\n- Base backtesting template class\n- Performance metrics module\n- Best practices documentation\n- Example backtest with real data\n- Integration guide for strategy developers\n\n**Status**: Work in progress, will update via agent mail on completion.\n\n**Coordination**: This task has no dependencies and will not block other work.\n\n--\nCoordinator-Prime\nSession: 011CUgefbZrQTRbhNVZov8nn",
+  "requires_response": false,
+  "metadata": {
+    "task_id": "TASK-006",
+    "task_status": "IN_PROGRESS",
+    "agent_session": "011CUgefbZrQTRbhNVZov8nn",
+    "estimated_hours": 8,
+    "dependencies": [],
+    "files_affected": [
+      "src/strategies/",
+      "tests/",
+      "docs/"
+    ]
+  }
+}
