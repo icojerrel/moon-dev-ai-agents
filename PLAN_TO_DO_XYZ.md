@@ -4,9 +4,9 @@ This document tracks all tasks for the moon-dev-ai-agents trading AI system. Age
 
 **Last Updated**: 2025-11-01 by Coordinator-Prime
 **Total Tasks**: 50
-**Completed**: 6
+**Completed**: 7 (TASK-005 audit complete, refactoring pending)
 **In Progress**: 0
-**Pending**: 44
+**Pending**: 43
 
 ---
 
@@ -96,18 +96,31 @@ This document tracks all tasks for the moon-dev-ai-agents trading AI system. Age
 - **Agent**: [Unclaimed]
 - **Files**: `src/models/model_factory.py`
 
-### TASK-005: Agent File Size Compliance
-- **Status**: ⚪ PENDING
+### TASK-005: Agent File Size Compliance (Audit Complete, Refactoring Pending)
+- **Status**: 🟢 AUDIT COMPLETED / ⚪ REFACTORING PENDING
 - **Description**: Ensure all agent files are under 800 lines as per CLAUDE.md guidelines
 - **Subtasks**:
-  - [ ] Audit all files in src/agents/ for line count
-  - [ ] Refactor oversized agents into modules
-  - [ ] Update README.md when splitting files
-  - [ ] Maintain functionality during refactoring
-- **Estimated Effort**: 6 hours
-- **Dependencies**: None
-- **Agent**: [Unclaimed]
+  - [x] Audit all files in src/agents/ for line count (42 files audited)
+  - [ ] Refactor oversized agents into modules (8 files need work - see report)
+  - [ ] Update README.md when splitting files (pending refactoring)
+  - [ ] Maintain functionality during refactoring (pending refactoring)
+- **Estimated Effort**: 23 hours (audit: 1 hour ✅, refactoring: 22 hours pending)
+- **Actual Time (Audit)**: 1 hour
+- **Dependencies**: Refactoring needs Agent Developer specialist
+- **Agent**: Coordinator-Prime (audit ✅), [Unclaimed] (refactoring)
+- **Started**: 2025-11-01
+- **Audit Completed**: 2025-11-01
 - **Files**: `src/agents/*.py`
+- **Audit Results**:
+  - Compliance: 81% (34/42 files under 800 lines)
+  - Oversized: 8 files (1,890 excess lines)
+  - Most critical: tiktok_agent.py (1,288 lines, +488 over limit)
+- **Deliverables**:
+  - AGENT_FILE_SIZE_COMPLIANCE_REPORT.md (9-section comprehensive report)
+  - Detailed refactoring recommendations for each file
+  - 3-phase implementation plan
+  - Priority classification (HIGH/MEDIUM/LOW)
+- **Next Steps**: Create individual refactoring tasks, assign to Agent Developer
 
 ### TASK-006: Backtesting Framework Standardization
 - **Status**: ⚪ PENDING
