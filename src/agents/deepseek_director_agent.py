@@ -30,7 +30,7 @@ import json
 project_root = Path(__file__).parent.parent.parent
 sys.path.append(str(project_root))
 
-from src.models.model_factory import ModelFactory
+from src.models.model_factory import model_factory
 from src.config import *
 from src.nice_funcs import (
     get_account_balance,
@@ -77,10 +77,20 @@ class DeepSeekTradingDirector:
         self.reasoning_temperature = self.config.get('reasoning_temperature', 0.3)
         self.enable_trade_approval = self.config.get('enable_trade_approval', True)
 
-        # Initialize DeepSeek-R1 model
-        cprint("🧠 Initializing DeepSeek Trading Director...", "cyan", attrs=['bold'])
-        self.model = ModelFactory.create_model('deepseek')
-        cprint("✅ DeepSeek-R1 model loaded", "green")
+        # Initialize AI model via OpenRouter (unified API for all LLMs)
+        cprint("🧠 Initializing AI Trading Director via OpenRouter...", "cyan", attrs=['bold'])
+
+        # Try OpenRouter first (RECOMMENDED), fallback to direct DeepSeek if needed
+        self.model = model_factory.get_model('openrouter', model_name='deepseek/deepseek-chat')
+
+        if not self.model:
+            cprint("⚠️ OpenRouter not available, trying direct DeepSeek API...", "yellow")
+            self.model = model_factory.get_model('deepseek', model_name='deepseek-chat')
+
+        if not self.model:
+            raise Exception("❌ No AI model available! Add OPENROUTER_API_KEY or DEEPSEEK_KEY to .env")
+
+        cprint(f"✅ AI model loaded: {self.model.model_name}", "green")
 
         # Director state
         self.current_regime = None
