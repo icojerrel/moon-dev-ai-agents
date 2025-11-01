@@ -39,3 +39,13 @@ ta-lib>=0.4.0
 PyPDF2>=3.0.0
 youtube-transcript-api>=0.6.2
 pandas-ta>=0.3.14b0
+
+# Additional dependencies found during audit 2025-11-01
+scipy>=1.11.0
+selenium>=4.15.0
+pytz>=2023.3
+rich>=13.7.0
+solders>=0.18.0
+backtrader>=1.9.78
+
+# Note: ffmpeg-python usage to be verified (may be CLI-only)

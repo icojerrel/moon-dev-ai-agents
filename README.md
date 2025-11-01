@@ -76,7 +76,32 @@ Project updates will be posted in discord, join here: [moondev.com](http://moond
 
 ## 🚀 Quick Start Guide
 
-python 3.10.9 is what was used during dev
+## 📦 Python & Environment Requirements
+
+**Python Version:**
+- **Minimum**: Python 3.10.9
+- **Recommended**: Python 3.11.x
+- **Tested On**: Python 3.11.14
+
+**Environment**: Conda (tflow environment)
+
+### Initial Setup
+
+```bash
+# Create conda environment (if it doesn't exist)
+conda create -n tflow python=3.11 -y
+
+# Activate the environment
+conda activate tflow
+
+# Install all dependencies
+pip install -r requirements.txt
+
+# Verify installation
+python -c "import anthropic, openai, pandas, backtesting; print('✅ Core dependencies installed successfully!')"
+```
+
+## 📋 Quick Start Steps
 
 1. ⭐ **Star the Repo**
    - Click the star button to save it to your GitHub favorites
