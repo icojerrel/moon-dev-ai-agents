@@ -32,14 +32,14 @@ symbol = '9BB6NFEcjBCtnNLFko2FqVQBq8HHM13kCyYcdQbgpump'
 address = '4wgfCBf2WwLSRKLef9iW7JXZ2AfkxUxGM4XcKpHm3Sin' # YOUR WALLET ADDRESS HERE
 
 # Position sizing 🎯
-usd_size = 25  # Size of position to hold
+usd_size = 10  # Size of position to hold (REDUCED for paper trading safety)
 max_usd_order_size = 3  # Max order size
 tx_sleep = 30  # Sleep between transactions
 slippage = 199  # Slippage settings
 
 # Risk Management Settings 🛡️
 CASH_PERCENTAGE = 20  # Minimum % to keep in USDC as safety buffer (0-100)
-MAX_POSITION_PERCENTAGE = 30  # Maximum % allocation per position (0-100)
+MAX_POSITION_PERCENTAGE = 10  # Maximum % allocation per position (REDUCED to 10% for safety)
 STOPLOSS_PRICE = 1 # NOT USED YET 1/5/25    
 BREAKOUT_PRICE = .0001 # NOT USED YET 1/5/25
 SLEEP_AFTER_CLOSE = 600  # Prevent overtrading
