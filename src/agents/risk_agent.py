@@ -1,6 +1,13 @@
 """
 🌙 Moon Dev's Risk Management Agent
 Built with love by Moon Dev 🚀
+
+Enhanced with:
+- Volatility-based position sizing
+- Correlation tracking
+- Kelly Criterion optimal sizing
+- Risk dashboard and reporting
+- Portfolio heat maps
 """
 
 # Model override settings - Adding DeepSeek support
@@ -56,6 +63,8 @@ import time
 from src.config import *
 from src.agents.base_agent import BaseAgent
 import traceback
+from src.agents import risk_metrics as rm
+from src.agents.risk_dashboard import RiskDashboard
 
 # Load environment variables
 load_dotenv()
@@ -113,7 +122,11 @@ class RiskAgent(BaseAgent):
         print(f"🏦 Initial Portfolio Balance: ${self.start_balance:.2f}")
         
         self.current_value = self.start_balance
-        cprint("🛡️ Risk Agent initialized!", "white", "on_blue")
+
+        # Initialize risk dashboard
+        self.dashboard = RiskDashboard()
+
+        cprint("🛡️ Risk Agent initialized with enhanced metrics!", "white", "on_blue")
         
     def get_portfolio_value(self):
         """Calculate total portfolio value in USD"""
@@ -556,14 +569,177 @@ Then explain your reasoning.
             current_value = self.get_portfolio_value()
             print(f"\n💰 Start Balance: ${self.start_balance:.2f}")
             print(f"📊 Current Value: ${current_value:.2f}")
-            
+
             pnl = current_value - self.start_balance
             print(f"📈 Current PnL: ${pnl:.2f}")
             return pnl
-            
+
         except Exception as e:
             print(f"❌ Error calculating PnL: {str(e)}")
             return 0.0
+
+    def calculate_enhanced_metrics(self, show_dashboard: bool = True):
+        """
+        Calculate enhanced risk metrics and display dashboard
+
+        Args:
+            show_dashboard: Whether to display the risk dashboard
+
+        Returns:
+            Dict with risk metrics
+        """
+        try:
+            cprint("\n🔬 Calculating Enhanced Risk Metrics...", "white", "on_cyan")
+
+            # Get current positions
+            positions_df = n.fetch_wallet_holdings_og(address)
+            positions_df = positions_df[
+                positions_df['Mint Address'].isin(MONITORED_TOKENS) &
+                ~positions_df['Mint Address'].isin(EXCLUDED_TOKENS)
+            ]
+
+            if positions_df.empty:
+                cprint("📝 No positions to analyze", "white", "on_blue")
+                return {}
+
+            # Collect price data and calculate metrics for each position
+            position_metrics = {}
+            price_data = {}
+            returns_data = {}
+
+            for _, row in positions_df.iterrows():
+                token = row['Mint Address']
+                value = row['USD Value']
+
+                if value > 0:
+                    # Get OHLCV data
+                    try:
+                        ohlcv = n.get_data(token, days_back=7, timeframe='15m')
+
+                        if ohlcv is not None and len(ohlcv) > 20:
+                            # Calculate volatility
+                            volatility = rm.calculate_volatility(
+                                ohlcv['close'],
+                                window=20,
+                                annualize=True
+                            )
+
+                            # Calculate ATR
+                            atr = rm.calculate_atr_volatility(
+                                ohlcv['high'],
+                                ohlcv['low'],
+                                ohlcv['close']
+                            )
+
+                            # Calculate recent performance
+                            recent_return = (ohlcv['close'].iloc[-1] / ohlcv['close'].iloc[-20] - 1)
+
+                            position_metrics[token] = {
+                                'value': value,
+                                'volatility': volatility,
+                                'atr': atr,
+                                'recent_return': recent_return,
+                                'risk_score': 0  # Will calculate after correlation
+                            }
+
+                            price_data[token] = ohlcv['close']
+                            returns_data[token] = ohlcv['close'].pct_change().dropna()
+
+                    except Exception as e:
+                        print(f"⚠️ Could not get data for {token[:12]}: {str(e)}")
+                        continue
+
+            # Calculate correlation matrix
+            correlation_matrix = rm.calculate_correlation_matrix(price_data)
+
+            # Check concentration
+            position_values = {t: m['value'] for t, m in position_metrics.items()}
+            concentration = rm.check_portfolio_concentration(
+                position_values,
+                correlation_matrix
+            )
+
+            # Calculate portfolio metrics
+            portfolio_value = self.get_portfolio_value()
+            portfolio_var = rm.calculate_portfolio_var(position_values, returns_data)
+            portfolio_cvar = rm.calculate_portfolio_cvar(position_values, returns_data)
+
+            # Calculate risk scores
+            for token, metrics in position_metrics.items():
+                # Average correlation with other positions
+                avg_corr = 0
+                if not correlation_matrix.empty and token in correlation_matrix.columns:
+                    correlations = correlation_matrix[token].drop(token)
+                    avg_corr = correlations.mean() if len(correlations) > 0 else 0
+
+                risk_score = rm.get_position_score(
+                    volatility=metrics['volatility'],
+                    correlation_with_portfolio=avg_corr,
+                    recent_performance=metrics['recent_return']
+                )
+                position_metrics[token]['risk_score'] = risk_score
+
+            # Display dashboard
+            if show_dashboard:
+                self.dashboard.clear_alerts()
+
+                # Add alerts for high-risk positions
+                for token, metrics in position_metrics.items():
+                    if metrics['risk_score'] >= 70:
+                        self.dashboard.add_alert(
+                            f"High risk score ({metrics['risk_score']:.0f}/100) for {token[:12]}",
+                            severity="high",
+                            alert_type="risk_score"
+                        )
+                    if metrics['volatility'] > 0.60:
+                        self.dashboard.add_alert(
+                            f"High volatility ({metrics['volatility']*100:.0f}%) for {token[:12]}",
+                            severity="medium",
+                            alert_type="volatility"
+                        )
+
+                # Add concentration alerts
+                if concentration.get('is_concentrated'):
+                    self.dashboard.add_alert(
+                        f"Portfolio concentration detected ({concentration['total_exposure']*100:.0f}% in correlated assets)",
+                        severity="critical",
+                        alert_type="concentration"
+                    )
+
+                # Display dashboard
+                self.dashboard.display_portfolio_overview(
+                    portfolio_value,
+                    position_metrics,
+                    self.start_balance
+                )
+
+                # Display correlation heatmap
+                if not correlation_matrix.empty:
+                    self.dashboard.display_correlation_heatmap(
+                        correlation_matrix,
+                        position_values
+                    )
+
+                # Display concentration warnings
+                self.dashboard.display_concentration_warnings(concentration)
+
+                # Display alerts
+                self.dashboard.display_alerts()
+
+            # Return metrics
+            return {
+                'portfolio_value': portfolio_value,
+                'positions': position_metrics,
+                'correlation_matrix': correlation_matrix,
+                'concentration': concentration,
+                'var_95': portfolio_var,
+                'cvar_95': portfolio_cvar
+            }
+
+        except Exception as e:
+            cprint(f"❌ Error calculating enhanced metrics: {str(e)}", "red")
+            traceback.print_exc()
+            return {}
 
     def run(self):
         """Run the risk agent (implements BaseAgent interface)"""

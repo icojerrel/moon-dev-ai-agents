@@ -1,0 +1,51 @@
+{
+  "timestamp": "2025-11-01T10:56:53.073157",
+  "portfolio_summary": {
+    "total_value": 10000,
+    "num_positions": 3,
+    "largest_position_pct": 30.0
+  },
+  "risk_metrics": {
+    "portfolio_volatility": 0.4,
+    "value_at_risk_95": 450,
+    "cvar_95": 600,
+    "sharpe_ratio": 1.8,
+    "max_drawdown": 0.12
+  },
+  "concentration": {
+    "is_concentrated": false,
+    "total_correlated_exposure": 0.3,
+    "num_correlated_groups": 0
+  },
+  "alerts": [
+    {
+      "timestamp": "2025-11-01T10:56:53.073114",
+      "message": "High volatility detected in TokenC",
+      "severity": "high",
+      "type": "volatility"
+    }
+  ],
+  "positions": [
+    {
+      "token": "TokenA",
+      "value": 3000,
+      "pct_of_portfolio": 30.0,
+      "volatility": 0.45,
+      "risk_score": 65
+    },
+    {
+      "token": "TokenB",
+      "value": 2500,
+      "pct_of_portfolio": 25.0,
+      "volatility": 0.3,
+      "risk_score": 45
+    },
+    {
+      "token": "TokenC",
+      "value": 2000,
+      "pct_of_portfolio": 20.0,
+      "volatility": 0.6,
+      "risk_score": 75
+    }
+  ]
+}
