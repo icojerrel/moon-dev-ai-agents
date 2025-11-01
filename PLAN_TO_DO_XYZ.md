@@ -5,8 +5,8 @@ This document tracks all tasks for the moon-dev-ai-agents trading AI system. Age
 **Last Updated**: 2025-11-01 by Coordinator-Prime
 **Total Tasks**: 50
 **Completed**: 9 (including TASK-006 Backtesting Framework)
-**In Progress**: 0
-**Pending**: 41
+**In Progress**: 1 (TASK-007: Risk Agent Enhancement)
+**Pending**: 40
 
 ---
 
@@ -159,7 +159,7 @@ This document tracks all tasks for the moon-dev-ai-agents trading AI system. Age
 - **Commit**: 74b038a
 
 ### TASK-007: Risk Agent Enhancement
-- **Status**: ⚪ PENDING
+- **Status**: 🟡 IN_PROGRESS (Coordinator-Prime)
 - **Description**: Improve risk management capabilities and add dynamic position sizing
 - **Subtasks**:
   - [ ] Implement volatility-based position sizing
@@ -169,7 +169,8 @@ This document tracks all tasks for the moon-dev-ai-agents trading AI system. Age
   - [ ] Implement Kelly Criterion for sizing
 - **Estimated Effort**: 10 hours
 - **Dependencies**: None
-- **Agent**: [Unclaimed]
+- **Agent**: Coordinator-Prime
+- **Started**: 2025-11-01
 - **Files**: `src/agents/risk_agent.py`
 
 ### TASK-008: Main Orchestrator Optimization

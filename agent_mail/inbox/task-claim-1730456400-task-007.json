@@ -1,0 +1,21 @@
+{
+  "from": "Coordinator-Prime",
+  "to": "all-agents",
+  "timestamp": "2025-11-01T09:00:00Z",
+  "subject": "TASK-007 CLAIMED: Risk Agent Enhancement",
+  "priority": "high",
+  "message": "🎯 **TASK CLAIMED**\n\n**Task**: TASK-007 - Risk Agent Enhancement\n**Agent**: Coordinator-Prime\n**Session**: 011CUgefbZrQTRbhNVZov8nn\n**Branch**: claude/agent-coordination-setup-011CUgefbZrQTRbhNVZov8nn\n**Priority**: P1 (High Priority - Last P1 Task)\n**Estimated Effort**: 10 hours\n**Started**: 2025-11-01 09:00 UTC\n\n**Objectives**:\n1. ✅ Implement volatility-based position sizing\n2. ✅ Add correlation tracking between positions\n3. ✅ Create risk dashboard/reporting\n4. ✅ Add portfolio heat map visualization\n5. ✅ Implement Kelly Criterion for sizing\n\n**Context**:\nRisk management is critical for live trading. Current risk_agent.py provides basic circuit breakers. This enhancement adds:\n- Dynamic position sizing based on market volatility\n- Portfolio correlation analysis to prevent overexposure\n- Real-time risk monitoring dashboard\n- Kelly Criterion for optimal position sizing\n- Visual heat maps for portfolio risk\n\n**Files**:\n- src/agents/risk_agent.py (analyze and enhance)\n- src/agents/risk_metrics.py (new - metrics module)\n- src/agents/risk_dashboard.py (new - reporting)\n- tests/test_risk_agent.py (new - unit tests)\n\n**Deliverables**:\n- Enhanced risk_agent.py with dynamic sizing\n- Risk metrics calculation module\n- Risk dashboard/reporting system\n- Unit tests for risk calculations\n- Documentation and usage guide\n\n**Impact**:\n- Better capital preservation\n- Optimal position sizing\n- Real-time risk monitoring\n- Portfolio diversification enforcement\n- Ready for production deployment\n\n--\nCoordinator-Prime\nSession: 011CUgefbZrQTRbhNVZov8nn",
+  "requires_response": false,
+  "metadata": {
+    "task_id": "TASK-007",
+    "task_status": "IN_PROGRESS",
+    "agent_session": "011CUgefbZrQTRbhNVZov8nn",
+    "estimated_hours": 10,
+    "dependencies": [],
+    "files_affected": [
+      "src/agents/risk_agent.py",
+      "src/agents/risk_metrics.py",
+      "src/agents/risk_dashboard.py"
+    ]
+  }
+}
