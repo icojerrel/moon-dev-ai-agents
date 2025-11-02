@@ -6,12 +6,12 @@ Handles all strategy-based trading decisions
 from src.config import *
 import json
 from termcolor import cprint
-import anthropic
 import os
 import importlib
 import inspect
 import time
 from src import nice_funcs as n
+from src.models import model_factory  # 🌟 Using OpenRouter for unified API access
 
 # 🎯 Strategy Evaluation Prompt
 STRATEGY_EVAL_PROMPT = """
@@ -50,7 +50,8 @@ class StrategyAgent:
     def __init__(self):
         """Initialize the Strategy Agent"""
         self.enabled_strategies = []
-        self.client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_KEY"))
+        # 🌟 Using OpenRouter for unified API access
+        self.model = model_factory.get_model(AI_PROVIDER, AI_MODEL)
         
         if ENABLE_STRATEGIES:
             try:
@@ -83,26 +84,25 @@ class StrategyAgent:
                 
             # Format signals for prompt
             signals_str = json.dumps(signals, indent=2)
-            
-            message = self.client.messages.create(
-                model=AI_MODEL,
-                max_tokens=AI_MAX_TOKENS,
+
+            # 🌟 Using OpenRouter model via model_factory
+            response = self.model.generate_response(
+                system_prompt="You are Moon Dev's Strategy Validation Assistant",
+                user_content=STRATEGY_EVAL_PROMPT.format(
+                    strategy_signals=signals_str,
+                    market_data=market_data
+                ),
                 temperature=AI_TEMPERATURE,
-                messages=[{
-                    "role": "user",
-                    "content": STRATEGY_EVAL_PROMPT.format(
-                        strategy_signals=signals_str,
-                        market_data=market_data
-                    )
-                }]
+                max_tokens=AI_MAX_TOKENS
             )
-            
-            response = message.content
-            if isinstance(response, list):
-                response = response[0].text if hasattr(response[0], 'text') else str(response[0])
-            
+
+            # Extract content from response
+            response_content = response.content if hasattr(response, 'content') else str(response)
+            if isinstance(response_content, list):
+                response_content = response_content[0].text if hasattr(response_content[0], 'text') else str(response_content[0])
+
             # Parse response
-            lines = response.split('\n')
+            lines = response_content.split('\n')
             decisions = lines[0].strip().split(',')
             reasoning = '\n'.join(lines[1:])
             

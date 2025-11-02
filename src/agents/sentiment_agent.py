@@ -51,8 +51,13 @@ pathlib.Path(DATA_FOLDER).mkdir(parents=True, exist_ok=True)
 # Load environment variables
 load_dotenv()
 
-# Get OpenAI key for voice
-openai.api_key = os.getenv("OPENAI_KEY")
+# Get OpenAI key for voice (TTS only - OpenRouter doesn't support TTS yet)
+# This agent uses local BERT model for sentiment analysis, not cloud LLMs
+openai_key = os.getenv("OPENAI_KEY")
+if openai_key:
+    openai.api_key = openai_key
+else:
+    print("⚠️ OPENAI_KEY not found - voice announcements will not work")
 
 # Patch httpx
 original_client = httpx.Client
