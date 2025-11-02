@@ -40,7 +40,7 @@ slippage = 199  # Slippage settings
 # Risk Management Settings 🛡️
 CASH_PERCENTAGE = 20  # Minimum % to keep in USDC as safety buffer (0-100)
 MAX_POSITION_PERCENTAGE = 30  # Maximum % allocation per position (0-100)
-STOPLOSS_PRICE = 1 # NOT USED YET 1/5/25    
+STOPLOSS_PRICE = 1 # NOT USED YET 1/5/25
 BREAKOUT_PRICE = .0001 # NOT USED YET 1/5/25
 SLEEP_AFTER_CLOSE = 600  # Prevent overtrading
 
@@ -78,10 +78,16 @@ DATA_TIMEFRAME = '1H'  # 1m, 3m, 5m, 15m, 30m, 1H, 2H, 4H, 6H, 8H, 12H, 1D, 3D, 
 SAVE_OHLCV_DATA = False  # 🌙 Set to True to save data permanently, False will only use temp data during run
 
 # AI Model Settings 🤖
-AI_MODEL = "claude-3-haiku-20240307"  # Model Options:
-                                     # - claude-3-haiku-20240307 (Fast, efficient Claude model)
-                                     # - claude-3-sonnet-20240229 (Balanced Claude model)
-                                     # - claude-3-opus-20240229 (Most powerful Claude model)
+# 🌟 RECOMMENDED: Use OpenRouter for access to ALL models with one API key
+AI_PROVIDER = "openrouter"  # Provider: openrouter (RECOMMENDED), claude, openai, deepseek, groq, xai, ollama
+AI_MODEL = "anthropic/claude-3.5-haiku"  # Model name (depends on provider)
+                                          # OpenRouter models:
+                                          # - anthropic/claude-3.5-haiku (Fast, smart, cheap)
+                                          # - anthropic/claude-3.5-sonnet (Balanced)
+                                          # - openai/gpt-4o (Latest GPT-4)
+                                          # - openai/o1-mini (Reasoning)
+                                          # - deepseek/deepseek-chat (Very cheap)
+                                          # - google/gemini-2.0-flash-exp (1M context)
 AI_MAX_TOKENS = 1024  # Max tokens for response
 AI_TEMPERATURE = 0.7  # Creativity vs precision (0-1)
 
@@ -101,8 +107,8 @@ REALTIME_CLIPS_ENABLED = True
 REALTIME_CLIPS_OBS_FOLDER = '/Volumes/Moon 26/OBS'  # Your OBS recording folder
 REALTIME_CLIPS_AUTO_INTERVAL = 120  # Check every N seconds (120 = 2 minutes)
 REALTIME_CLIPS_LENGTH = 2  # Minutes to analyze per check
-REALTIME_CLIPS_AI_MODEL = 'groq'  # Model type: groq, openai, claude, deepseek, xai, ollama
-REALTIME_CLIPS_AI_MODEL_NAME = None  # None = use default for model type
+REALTIME_CLIPS_AI_MODEL = 'openrouter'  # 🌟 Model type: openrouter (RECOMMENDED), groq, openai, claude, deepseek, xai, ollama
+REALTIME_CLIPS_AI_MODEL_NAME = 'anthropic/claude-3.5-haiku'  # Model name (or None for default)
 REALTIME_CLIPS_TWITTER = True  # Auto-open Twitter compose after clip
 
 # Future variables (not active yet) 🔮

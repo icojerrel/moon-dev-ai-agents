@@ -61,25 +61,26 @@ Remember: Past performance doesn't guarantee future results!
 #     "name": "deepseek-chat"  # Using DeepSeek Chat for package optimization
 # }
 
-# OpenAI model configurations (updated to working models)
+# 🌟 OpenRouter model configurations (access ALL models with one API key!)
+# All models accessed via OpenRouter - single OPENROUTER_KEY for everything
 RESEARCH_CONFIG = {
-    "type": "openai",
-    "name": "gpt-4o"  # Fast, capable model for research
+    "type": "openrouter",
+    "name": "anthropic/claude-3.5-haiku"  # Fast and smart for research
 }
 
 BACKTEST_CONFIG = {
-    "type": "openai",
-    "name": "o1-mini"  # Better reasoning for code generation
+    "type": "openrouter",
+    "name": "openai/o1-mini"  # Better reasoning for code generation
 }
 
 DEBUG_CONFIG = {
-    "type": "openai",
-    "name": "gpt-4o"  # Fast debugging
+    "type": "openrouter",
+    "name": "anthropic/claude-3.5-haiku"  # Fast debugging
 }
 
 PACKAGE_CONFIG = {
-    "type": "openai",
-    "name": "gpt-4o"  # Quick package optimization
+    "type": "openrouter",
+    "name": "anthropic/claude-3.5-haiku"  # Quick package optimization
 }
 
 

@@ -2,20 +2,72 @@
 
 A unified interface for managing multiple AI model providers. This module handles initialization, API key management, and provides a consistent interface for generating responses across different AI models.
 
+## 🌟 RECOMMENDED: Use OpenRouter
+
+**OpenRouter provides access to ALL AI models through a single API key!**
+
+### Why OpenRouter?
+1. ✅ **Single API Key** - One `OPENROUTER_KEY` for ALL models (OpenAI, Anthropic, DeepSeek, Gemini, etc.)
+2. ✅ **Cost Savings** - Competitive pricing, often cheaper than direct APIs
+3. ✅ **No Vendor Lock-in** - Switch between any model instantly
+4. ✅ **Automatic Fallbacks** - Route to alternatives if provider is down
+5. ✅ **Unified Billing** - One bill for all AI usage
+6. ✅ **Better Rate Limits** - Pooled limits across providers
+
+**Get your OpenRouter key**: https://openrouter.ai/keys
+
 ## 🔑 Required API Keys
 
-Add these to your `.env` file in the project root:
+### Option 1: OpenRouter Only (🌟 RECOMMENDED)
 ```env
-ANTHROPIC_KEY=your_key_here    # For Claude models
-GROQ_API_KEY=your_key_here     # For Groq models (includes Mixtral, Llama, etc.)
-OPENAI_KEY=your_key_here       # For OpenAI models (GPT-4, O1, etc.)
-GEMINI_KEY=your_key_here       # For Gemini models
-DEEPSEEK_KEY=your_key_here     # For DeepSeek models
+OPENROUTER_KEY=sk-or-v1-your_key_here    # Access ALL models with this one key!
 ```
+
+### Option 2: Direct Provider Keys (Legacy)
+```env
+ANTHROPIC_KEY=your_key_here    # For Claude models (direct)
+GROQ_API_KEY=your_key_here     # For Groq models (direct)
+OPENAI_KEY=your_key_here       # For OpenAI models (direct)
+GEMINI_KEY=your_key_here       # For Gemini models (direct)
+DEEPSEEK_KEY=your_key_here     # For DeepSeek models (direct)
+GROK_API_KEY=your_key_here     # For xAI Grok models (direct)
+```
+
+⚠️ **Note**: If you use OpenRouter, you DON'T need individual provider keys!
 
 ## 🤖 Available Models
 
-### OpenAI Models
+### 🌟 OpenRouter Models (Recommended)
+Access ALL models below through OpenRouter with format: `"provider/model-name"`
+
+**Popular OpenRouter Models**:
+```python
+# Anthropic models via OpenRouter
+"anthropic/claude-3.5-haiku"      # Fast, smart, cheap (200K context)
+"anthropic/claude-3.5-sonnet"     # Balanced performance
+"anthropic/claude-3-opus"         # Most capable
+
+# OpenAI models via OpenRouter
+"openai/gpt-4o"                   # Latest GPT-4 Optimized
+"openai/o1-mini"                  # Reasoning model
+"openai/gpt-4o-mini"              # Fast and cheap
+
+# DeepSeek models via OpenRouter
+"deepseek/deepseek-chat"          # Very cheap, fast
+"deepseek/deepseek-reasoner"      # R1 reasoning model
+
+# Google models via OpenRouter
+"google/gemini-2.0-flash-exp"     # Latest Gemini (1M context)
+"google/gemini-flash-1.5"         # Fast Gemini
+
+# xAI models via OpenRouter
+"x-ai/grok-beta"                  # Grok by xAI
+
+# Meta models via OpenRouter
+"meta-llama/llama-3.3-70b-instruct"  # Llama 3.3 (128K context)
+```
+
+### OpenAI Models (Direct API)
 Latest Models:
 - `gpt-5`: Next-generation GPT model (use when you want the strongest reasoning + code generation)
 - `gpt-4o`: Latest GPT-4 Optimized model (Best for complex reasoning)
@@ -107,7 +159,9 @@ Interesting models for future use:
 - gemma - for quick llm tasks https://huggingface.co/google/gemma-2-9b
 - coqui - for voice locally https://huggingface.co/coqui/XTTS-v2
 
-## 🚀 Usage Example
+## 🚀 Usage Examples
+
+### Example 1: Using OpenRouter (🌟 RECOMMENDED)
 
 ```python
 from src.models import model_factory
@@ -115,8 +169,15 @@ from src.models import model_factory
 # Initialize the model factory
 factory = model_factory.ModelFactory()
 
-# Get a specific model
-model = factory.get_model("openai", "gpt-4o")  # Using latest GPT-4 Optimized
+# 🌟 Get ANY model via OpenRouter with one API key
+# Claude 3.5 Haiku - Fast and smart
+model = factory.get_model("openrouter", "anthropic/claude-3.5-haiku")
+
+# Or GPT-4o via OpenRouter
+# model = factory.get_model("openrouter", "openai/gpt-4o")
+
+# Or O1-mini via OpenRouter
+# model = factory.get_model("openrouter", "openai/o1-mini")
 
 # Generate a response
 response = model.generate_response(
@@ -127,6 +188,53 @@ response = model.generate_response(
 )
 
 print(response.content)
+```
+
+### Example 2: Using Direct APIs (Legacy)
+
+```python
+from src.models import model_factory
+
+factory = model_factory.ModelFactory()
+
+# Direct OpenAI API (requires OPENAI_KEY)
+model = factory.get_model("openai", "gpt-4o")
+
+# Direct Anthropic API (requires ANTHROPIC_KEY)
+# model = factory.get_model("claude", "claude-3-haiku-20240307")
+
+# Direct DeepSeek API (requires DEEPSEEK_KEY)
+# model = factory.get_model("deepseek", "deepseek-chat")
+
+response = model.generate_response(
+    system_prompt="You are a helpful AI assistant.",
+    user_content="Hello!",
+    temperature=0.7,
+    max_tokens=1024
+)
+
+print(response.content)
+```
+
+### Example 3: RBI Agent Configuration
+
+```python
+# In rbi_agent.py - Use OpenRouter for all models
+
+RESEARCH_CONFIG = {
+    "type": "openrouter",
+    "name": "anthropic/claude-3.5-haiku"  # Fast research
+}
+
+BACKTEST_CONFIG = {
+    "type": "openrouter",
+    "name": "openai/o1-mini"  # Better reasoning for code
+}
+
+DEBUG_CONFIG = {
+    "type": "openrouter",
+    "name": "anthropic/claude-3.5-haiku"  # Fast debugging
+}
 ```
 
 ## 🌟 Features

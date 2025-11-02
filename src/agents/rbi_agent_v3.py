@@ -75,33 +75,31 @@ except ImportError as e:
     print(f"⚠️ Could not import model_factory: {e}")
     sys.exit(1)
 
-# Model Configurations
-# You can switch between "deepseek", "xai", "openai", "claude", "groq", etc.
-# Available xAI models: grok-4-fast-reasoning (best value!), grok-4-0709, grok-4-fast-non-reasoning,
-#                       grok-3, grok-3-mini, grok-code-fast-1
+# 🌟 OpenRouter model configurations (access ALL models with one API key!)
+# All models accessed via OpenRouter for unified API key management
 RESEARCH_CONFIG = {
-    "type": "xai",  # Using Grok 4 Fast Reasoning (2M context, cheap!)
-    "name": "grok-4-fast-reasoning"
+    "type": "openrouter",
+    "name": "anthropic/claude-3.5-haiku"  # Fast and smart for research
 }
 
 BACKTEST_CONFIG = {
-    "type": "xai",  # Using Grok 4 Fast Reasoning for backtest coding
-    "name": "grok-4-fast-reasoning"
+    "type": "openrouter",
+    "name": "openai/o1-mini"  # Better reasoning for code generation
 }
 
 DEBUG_CONFIG = {
-    "type": "xai",  # Using Grok 4 Fast Reasoning for debugging
-    "name": "grok-4-fast-reasoning"
+    "type": "openrouter",
+    "name": "anthropic/claude-3.5-haiku"  # Fast debugging
 }
 
 PACKAGE_CONFIG = {
-    "type": "xai",  # Using Grok 4 Fast Reasoning for package checking
-    "name": "grok-4-fast-reasoning"
+    "type": "openrouter",
+    "name": "anthropic/claude-3.5-haiku"  # Quick package checking
 }
 
 OPTIMIZE_CONFIG = {
-    "type": "xai",  # Using Grok 4 Fast Reasoning for optimization
-    "name": "grok-4-fast-reasoning"
+    "type": "openrouter",  # Using OpenRouter for optimization
+    "name": "openai/o1-mini"  # Good at iterative improvement
 }
 
 # 🎯🎯🎯 PROFIT TARGET CONFIGURATION 🎯🎯🎯
