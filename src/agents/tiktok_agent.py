@@ -173,8 +173,9 @@ COMMENT_LOAD_WAIT = .5  # Wait for comments to load after clicking
 MAX_VIDEOS = 500
 
 # AI Model settings for screenshot analysis
-MODEL_TYPE = "openai"     # Using OpenAI for text analysis
-MODEL_NAME = "gpt-4o-mini"  # GPT-4 model for analysis
+# 🌟 Using OpenRouter for unified API access
+MODEL_TYPE = "openrouter"     # Using OpenRouter for text analysis
+MODEL_NAME = "openai/gpt-4o-mini"  # GPT-4 model via OpenRouter
 
 # Prompt for AI analysis of screenshots
 ANALYSIS_PROMPT = """The left side of the image is a TikTok video and the right side are the comments. 

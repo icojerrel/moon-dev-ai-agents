@@ -30,9 +30,10 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from src.models import model_factory
 
 # Configuration
+# 🌟 Using OpenRouter for unified API access
 MODEL_CONFIG = {
-    "type": "openai",
-    "name": "gpt-4o-mini",  # Using OpenAI's GPT-4o-mini model for analysis
+    "type": "openrouter",
+    "name": "openai/gpt-4o-mini",  # Using GPT-4o-mini via OpenRouter
     "reasoning_effort": "high"  # Maximum reasoning for compliance checks
 }
 

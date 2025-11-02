@@ -30,10 +30,10 @@ AUTO_CLIP_INTERVAL = 120  # Check every 2 minutes (120 seconds)
 AUTO_CLIP_LENGTH = 2  # Analyze the last 2 minutes
 
 # AI Model Configuration (via Model Factory)
-# Available types: 'groq', 'openai', 'claude', 'deepseek', 'xai', 'ollama'
-# Groq is recommended for speed! (Default: llama-3.3-70b-versatile)
-AI_MODEL_TYPE = 'xai'
-AI_MODEL_NAME = None  # None = use default for model type, or specify: 'llama-3.3-70b-versatile', 'gpt-4o', etc.
+# 🌟 Using OpenRouter for unified access to ALL models with single API key
+# Available via OpenRouter: Claude, GPT-4, DeepSeek, Gemini, Grok, Llama, and more!
+AI_MODEL_TYPE = 'openrouter'
+AI_MODEL_NAME = 'anthropic/claude-3.5-haiku'  # Fast, smart, cost-effective for clip analysis
 
 # AI Decision Prompt - Should we clip this?
 DECISION_PROMPT = """You are analyzing a video transcript segment that has ALREADY been trimmed to the best content by another AI.

@@ -8,23 +8,19 @@ Handles all LLM-based trading decisions
 # ============================================================================
 
 # AI Model Configuration (via Model Factory)
-# Available types: 'groq', 'openai', 'claude', 'deepseek', 'xai', 'ollama'
-# xAI's Grok is great for trading! Fast reasoning at 2M context window
-AI_MODEL_TYPE = 'xai'  # Change to: groq, openai, claude, deepseek, xai, ollama
-AI_MODEL_NAME = None   # None = use default for model type, or specify model name
+# 🌟 USING OPENROUTER - Access ALL models with single API key!
+# Available via OpenRouter: Anthropic Claude, OpenAI GPT-4, DeepSeek, Gemini, xAI Grok, Meta Llama, etc.
+AI_MODEL_TYPE = 'openrouter'  # OpenRouter provides unified access to all AI models
+AI_MODEL_NAME = 'anthropic/claude-3.5-haiku'  # Fast, smart, cost-effective
 
-# Available xAI models:
-# - 'grok-4-fast-reasoning' (default) - Best value! 2M context, cheap, fast
-# - 'grok-4-0709' - Most intelligent, higher cost
-# - 'grok-3' - Previous generation
-
-# Available Groq models:
-# - 'llama-3.3-70b-versatile' (default) - Fast & powerful
-
-# Available Claude models:
-# - 'claude-3-5-haiku-latest' (default) - Fast
-# - 'claude-3-5-sonnet-latest' - Balanced
-# - 'claude-3-opus-latest' - Most powerful
+# Popular OpenRouter models for trading:
+# - 'anthropic/claude-3.5-haiku' - Fast & smart (200K context)
+# - 'anthropic/claude-3.5-sonnet' - Balanced performance
+# - 'openai/gpt-4o' - Latest GPT-4 Optimized
+# - 'openai/o1-mini' - Reasoning model
+# - 'deepseek/deepseek-chat' - Very cheap & fast
+# - 'x-ai/grok-beta' - Grok by xAI (2M context)
+# - 'meta-llama/llama-3.3-70b-instruct' - Open source (128K context)
 
 # ============================================================================
 # END CONFIGURATION

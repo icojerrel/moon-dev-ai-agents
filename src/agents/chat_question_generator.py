@@ -34,8 +34,9 @@ load_dotenv(dotenv_path=env_path)
 MINUTES_TO_ANALYZE = 10  # How many minutes of chat history to analyze
 REFRESH_INTERVAL = 30  # How often to generate new questions (seconds)
 MAX_QUESTIONS = 5  # Maximum number of questions to generate
-MODEL_TYPE = "claude"  # Using Claude for question generation
-MODEL_NAME = "claude-3-haiku-20240307"  # Fast model for quick responses
+# 🌟 Using OpenRouter for unified API access
+MODEL_TYPE = "openrouter"  # Using OpenRouter for question generation
+MODEL_NAME = "anthropic/claude-3.5-haiku"  # Claude via OpenRouter - fast model for quick responses
 
 # Question generation prompt
 QUESTION_GENERATION_PROMPT = """You are an AI that analyzes live stream chat conversations and generates short, readable questions.

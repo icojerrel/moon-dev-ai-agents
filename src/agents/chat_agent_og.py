@@ -51,8 +51,9 @@ if not env_path.exists():
 load_dotenv(dotenv_path=env_path)
 
 # Model override settings
-MODEL_TYPE = "claude"  # Using Claude for chat responses
-MODEL_NAME = "claude-3-haiku-20240307"  # Fast, efficient model
+# 🌟 Using OpenRouter for unified API access
+MODEL_TYPE = "openrouter"  # Using OpenRouter for chat responses
+MODEL_NAME = "anthropic/claude-3.5-haiku"  # Claude via OpenRouter - fast, efficient
 
 # Configuration - All in one place! 🎯
 YOUTUBE_CHANNEL_ID = "UCN7D80fY9xMYu5mHhUhXEFw"

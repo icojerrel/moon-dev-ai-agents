@@ -18,9 +18,10 @@ class BookAgent:
     """Agent for processing and analyzing text documents using Gemini 2.0"""
     
     def __init__(self):
-        """Initialize the book agent with Gemini 2.0 Flash model"""
+        """Initialize the book agent with Gemini 2.0 Flash model via OpenRouter"""
         cprint("🌙 Moon Dev's Book Agent Initializing...", "cyan")
-        self.model = model_factory.get_model("gemini", "gemini-2.0-flash")
+        # 🌟 Using OpenRouter for unified API access
+        self.model = model_factory.get_model("openrouter", "google/gemini-2.0-flash-exp")
         cprint(f"📚 Loading knowledge base from: {KNOWLEDGE_BASE_FOLDER}", "cyan")
         self.knowledge_base = self._load_knowledge_base()
         

@@ -91,8 +91,9 @@ cprint(f"📝 .env Path: {env_path}", "cyan")
 # - "llama3.2": Balanced model good for most tasks
 
 # Model override settings
-MODEL_TYPE = "claude"  # Choose from model types above
-MODEL_NAME = "claude-3-haiku-20240307"  # Choose from models above
+# 🌟 Using OpenRouter for unified API access
+MODEL_TYPE = "openrouter"  # Using OpenRouter for all AI models
+MODEL_NAME = "anthropic/claude-3.5-haiku"  # Claude via OpenRouter - fast and efficient
 
 # Configuration for faster testing
 MIN_INTERVAL_MINUTES = 2  # Less than a second
@@ -173,18 +174,14 @@ class FocusAgent:
             cprint(f"  ├─ Input: {model_info.get('input_price', '')}", "yellow")
             cprint(f"  └─ Output: {model_info.get('output_price', '')}", "yellow")
         
-        # Initialize voice client
+        # Initialize voice client ONLY for TTS (text-to-speech)
+        # OpenRouter doesn't support TTS yet, so we keep OpenAI for voice generation
         openai_key = os.getenv("OPENAI_KEY")
         if not openai_key:
-            raise ValueError("🚨 OPENAI_KEY not found in environment variables!")
-        self.openai_client = openai.OpenAI(api_key=openai_key)
-
-        
-        # Initialize Anthropic for Claude models
-        anthropic_key = os.getenv("ANTHROPIC_KEY")
-        if not anthropic_key:
-            raise ValueError("🚨 ANTHROPIC_KEY not found in environment variables!")
-        self.anthropic_client = Anthropic(api_key=anthropic_key)
+            cprint("⚠️ OPENAI_KEY not found - voice announcements will not work", "yellow")
+            self.openai_client = None
+        else:
+            self.openai_client = openai.OpenAI(api_key=openai_key)
         
         # Initialize Google Speech client
         google_creds = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")

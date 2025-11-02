@@ -103,8 +103,9 @@ PROCESS_YOUTUBE = False  # Set to False to process local videos without AI analy
 # when False it will use the videos below in the input_dir folder without getting transcripts
 
 # AI Settings (only used if PROCESS_YOUTUBE is True)
-MODEL_TYPE = "ollama"  # Using local Ollama
-MODEL_NAME = "llama3.2"  # ollama: deepseek-r1, gemma:2b, llama3.2
+# 🌟 Using OpenRouter for unified API access (use ollama for free local processing)
+MODEL_TYPE = "openrouter"  # Using OpenRouter for cloud AI or 'ollama' for local
+MODEL_NAME = "anthropic/claude-3.5-haiku"  # OpenRouter model or ollama model (deepseek-r1, gemma:2b, llama3.2)
 
 # Voice settings from focus agent
 VOICE_MODEL = "tts-1"

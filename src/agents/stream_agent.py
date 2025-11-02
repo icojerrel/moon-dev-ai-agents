@@ -84,18 +84,24 @@ class StreamAgent:
         self.downloads_dir = DOWNLOADS_DIR
         
         # Verify environment variables
+        if not os.getenv("OPENROUTER_KEY"):
+            raise ValueError(f"🚨 OPENROUTER_KEY not found!")
         if not os.getenv("OPENAI_KEY"):
-            raise ValueError(f"🚨 OPENAI_KEY not found!")
-        
-        # Initialize OpenAI client
+            cprint("⚠️ OPENAI_KEY not found - DALL-E thumbnail generation will not work", "yellow")
+
+        # Initialize OpenAI client ONLY for DALL-E image generation
+        # (OpenRouter doesn't support DALL-E yet)
         openai_key = os.getenv("OPENAI_KEY")
-        self.openai_client = openai.OpenAI(api_key=openai_key)
-        
+        if openai_key:
+            self.openai_client = openai.OpenAI(api_key=openai_key)
+        else:
+            self.openai_client = None
+
         # Initialize local Whisper model
         self.whisper_model = whisper.load_model("base")
-        
-        # Initialize model for title generation
-        self.model = model_factory.get_model("openai", "gpt-4o")
+
+        # 🌟 Initialize model for title generation via OpenRouter
+        self.model = model_factory.get_model("openrouter", "openai/gpt-4o")
         
         self.is_recording = False
         self.current_transcript = []

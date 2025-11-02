@@ -63,12 +63,13 @@ IDEAS_TXT = DATA_DIR / "ideas.txt"
 IDEAS_CSV = DATA_DIR / "strategy_ideas.csv"
 
 # Model configurations
+# 🌟 Using OpenRouter for unified API access to all models
 MODELS = [
-    # {"type": "ollama", "name": "DeepSeek-R1:latest"},
-    # {"type": "ollama", "name": "llama3.2:latest"},
-    # {"type": "ollama", "name": "gemma:2b"}
-    {"type": "deepseek", "name": "deepseek-chat"},
-    {"type": "deepseek", "name": "deepseek-reasoner"}
+    # {"type": "ollama", "name": "DeepSeek-R1:latest"},  # Local option
+    # {"type": "ollama", "name": "llama3.2:latest"},  # Local option
+    # {"type": "ollama", "name": "gemma:2b"}  # Local option
+    {"type": "openrouter", "name": "deepseek/deepseek-chat"},  # Fast chat via OpenRouter
+    {"type": "openrouter", "name": "deepseek/deepseek-reasoner"}  # Reasoning via OpenRouter
 ]
 
 # Fun emojis for animation
