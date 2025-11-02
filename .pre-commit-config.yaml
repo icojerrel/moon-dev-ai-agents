@@ -1,0 +1,100 @@
+# 🔒 Moon Dev Pre-Commit Hooks Configuration
+# Prevents accidental commits of secrets, large files, and other issues
+#
+# Installation:
+#   pip install pre-commit
+#   pre-commit install
+#
+# Run manually:
+#   pre-commit run --all-files
+
+repos:
+  # Standard pre-commit hooks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      # Security checks
+      - id: detect-private-key
+        name: 🔑 Detect private keys
+        description: Detects the presence of private keys
+
+      - id: detect-aws-credentials
+        name: 🔐 Detect AWS credentials
+        args: ['--allow-missing-credentials']
+
+      # File checks
+      - id: check-added-large-files
+        name: 📦 Check for large files
+        args: ['--maxkb=5000']  # Max 5MB
+
+      - id: check-merge-conflict
+        name: ⚠️ Check for merge conflicts
+
+      - id: check-yaml
+        name: ✅ Check YAML syntax
+
+      - id: check-json
+        name: ✅ Check JSON syntax
+
+      - id: end-of-file-fixer
+        name: 📝 Fix end of files
+
+      - id: trailing-whitespace
+        name: 🧹 Trim trailing whitespace
+
+      # Python specific
+      - id: check-ast
+        name: 🐍 Check Python AST
+
+      - id: debug-statements
+        name: 🐛 Check for debugger imports
+
+      - id: name-tests-test
+        name: 🧪 Check test naming
+        args: ['--django']
+
+  # Secret detection (most important!)
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.4.0
+    hooks:
+      - id: detect-secrets
+        name: 🕵️ Detect secrets
+        args:
+          - '--baseline'
+          - '.secrets.baseline'
+          - '--exclude-files'
+          - '\.env_example$'
+          - '--exclude-files'
+          - 'PRIORITY_ACTION_PLAN\.md$'  # Has example patterns
+
+  # Python code formatting (optional, uncomment to enable)
+  # - repo: https://github.com/psf/black
+  #   rev: 23.12.1
+  #   hooks:
+  #     - id: black
+  #       name: 🎨 Format with Black
+  #       language_version: python3
+
+  # Python linting (optional, uncomment to enable)
+  # - repo: https://github.com/pycqa/flake8
+  #   rev: 7.0.0
+  #   hooks:
+  #     - id: flake8
+  #       name: 📏 Lint with Flake8
+  #       args: ['--max-line-length=120', '--ignore=E203,W503']
+
+# Global settings
+default_language_version:
+  python: python3
+
+# Skip certain files
+exclude: |
+  (?x)^(
+      \.env$|
+      \.env\..*|
+      src/data/.*|
+      .*\.csv$|
+      .*\.log$|
+      .*\.sqlite$|
+      .*\.db$
+  )$
