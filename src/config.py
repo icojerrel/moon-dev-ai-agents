@@ -40,9 +40,7 @@ slippage = 199  # Slippage settings
 # Risk Management Settings 🛡️
 CASH_PERCENTAGE = 20  # Minimum % to keep in USDC as safety buffer (0-100)
 MAX_POSITION_PERCENTAGE = 30  # Maximum % allocation per position (0-100)
-STOPLOSS_PRICE = 1 # NOT USED YET 1/5/25    
-BREAKOUT_PRICE = .0001 # NOT USED YET 1/5/25
-SLEEP_AFTER_CLOSE = 600  # Prevent overtrading
+SLEEP_AFTER_CLOSE = 600  # Prevent overtrading (seconds)
 
 MAX_LOSS_GAIN_CHECK_HOURS = 12  # How far back to check for max loss/gain limits (in hours)
 SLEEP_BETWEEN_RUNS_MINUTES = 15  # How long to sleep between agent runs 🕒
@@ -89,9 +87,6 @@ AI_TEMPERATURE = 0.7  # Creativity vs precision (0-1)
 ENABLE_STRATEGIES = True  # Set this to True to use strategies
 STRATEGY_MIN_CONFIDENCE = 0.7  # Minimum confidence to act on strategy signals
 
-# Sleep time between main agent runs
-SLEEP_BETWEEN_RUNS_MINUTES = 15  # How long to sleep between agent runs 🕒
-
 # in our nice_funcs in token over view we look for minimum trades last hour
 MIN_TRADES_LAST_HOUR = 2
 
@@ -105,13 +100,25 @@ REALTIME_CLIPS_AI_MODEL = 'groq'  # Model type: groq, openai, claude, deepseek, 
 REALTIME_CLIPS_AI_MODEL_NAME = None  # None = use default for model type
 REALTIME_CLIPS_TWITTER = True  # Auto-open Twitter compose after clip
 
-# Future variables (not active yet) 🔮
-sell_at_multiple = 3
-USDC_SIZE = 1
-limit = 49
-timeframe = '15m'
-stop_loss_perctentage = -.24
-EXIT_ALL_POSITIONS = False
-DO_NOT_TRADE_LIST = ['777']
-CLOSED_POSITIONS_TXT = '777'
-minimum_trades_in_last_hour = 777
+# ============================================================================
+# 🔮 FUTURE/PLANNED FEATURES (Not Yet Implemented)
+# ============================================================================
+# These variables are placeholders for future functionality
+# Do not modify unless implementing the associated features
+
+# NOT IMPLEMENTED - Stop Loss & Breakout Settings
+STOPLOSS_PRICE = None  # Future: Price-based stop loss
+BREAKOUT_PRICE = None  # Future: Breakout trigger price
+
+# NOT IMPLEMENTED - Advanced Trading Controls
+EXIT_ALL_POSITIONS = False  # Future: Emergency exit flag
+sell_at_multiple = 3  # Future: Target profit multiplier
+DO_NOT_TRADE_LIST = []  # Future: Tokens to exclude from trading
+CLOSED_POSITIONS_TXT = None  # Future: Path to closed positions log
+
+# NOT IMPLEMENTED - Legacy Settings (May be deprecated)
+USDC_SIZE = 1  # Legacy position sizing
+limit = 49  # Legacy limit setting
+timeframe = '15m'  # Legacy timeframe (use DATA_TIMEFRAME instead)
+stop_loss_perctentage = -.24  # Legacy stop loss percentage
+minimum_trades_in_last_hour = 0  # Legacy minimum trades (use MIN_TRADES_LAST_HOUR instead)

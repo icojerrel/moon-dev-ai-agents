@@ -25,16 +25,20 @@ from src.agents.sentiment_agent import SentimentAgent
 # Load environment variables
 load_dotenv()
 
-# Agent Configuration
+# ============================================================================
+# Agent Configuration - Enable/Disable Agents in Main Loop
+# ============================================================================
+# Set to True to enable an agent in the main orchestrator loop
+# Many agents can also be run standalone (e.g., python src/agents/sentiment_agent.py)
+
 ACTIVE_AGENTS = {
-    'risk': False,      # Risk management agent
-    'trading': False,   # LLM trading agent
-    'strategy': False,  # Strategy-based trading agent
-    'copybot': False,   # CopyBot agent
-    'sentiment': False, # Run sentiment_agent.py directly instead
-    # whale_agent is run from whale_agent.py
-    # Add more agents here as we build them:
-    # 'portfolio': False,  # Future portfolio optimization agent
+    'risk': False,      # Risk management agent - monitors portfolio health
+    'trading': False,   # LLM-based trading analysis and decisions
+    'strategy': False,  # Strategy-based trading using predefined strategies
+    'copybot': False,   # Analyzes and optionally copies successful traders
+    'sentiment': False, # Market sentiment analysis (can run standalone)
+    # Note: Some agents like whale_agent, sentiment_agent are typically run standalone
+    # Future agents can be added here as they are developed
 }
 
 def run_agents():

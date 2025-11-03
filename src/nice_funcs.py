@@ -793,14 +793,12 @@ def kill_switch(token_mint_address):
 
         decimals = 0
         decimals = get_decimals(token_mint_address)
-        #print(f'xxxxxxxxx for {token_mint_address[-4:]} decimals is {decimals}')
         sell_size = int(sell_size * 10 **decimals)
         print(f'balance is {balance} and usd_value is {usd_value} EXIT ALL POSITIONS TRUE and sell_size is {sell_size} decimals is {decimals}')
 
 
     else:
         print(f'for {token_mint_address[:4]} value is {usd_value} ')
-        #time.sleep(10)
 
     print('closing position in full...')
 
@@ -892,7 +890,6 @@ def elegant_entry(symbol, buy_under):
         print('position filled')
         time.sleep(10)
 
-    # add debug prints for next while
     print(f'position: {round(pos,2)} price: {round(price,8)} pos_usd: ${round(pos_usd,2)}')
     print(f'buy_under: {buy_under}')
     while pos_usd < (.97 * usd_size) and (price < buy_under):
@@ -975,9 +972,8 @@ def breakout_entry(symbol, BREAKOUT_PRICE):
         print('position filled')
         time.sleep(10)
 
-    # add debug prints for next while
     print(f'position: {round(pos,2)} price: {round(price,8)} pos_usd: ${round(pos_usd,2)}')
-    print(f'breakoutpurce: {BREAKOUT_PRICE}')
+    print(f'breakout_price: {BREAKOUT_PRICE}')
     while pos_usd < (.97 * usd_size) and (price > BREAKOUT_PRICE):
 
         print(f'position: {round(pos,2)} price: {round(price,8)} pos_usd: ${round(pos_usd,2)}')
