@@ -45,6 +45,11 @@ from src.utils.mt5_helpers import (
     get_market_context,
     calculate_position_size
 )
+from src.utils.trading_hours import (
+    is_optimal_trading_time,
+    get_current_session,
+    get_session_info
+)
 import src.config as config
 
 
@@ -334,6 +339,23 @@ Provide your trading recommendation."""
             cprint("🌙 MT5 Trading Agent - Analysis Cycle", "cyan")
             cprint("="*60 + "\n", "cyan")
 
+            # Display current market session info
+            if config.MT5_USE_TRADING_HOURS_FILTER:
+                session_info = get_session_info()
+                current_session = get_current_session()
+
+                cprint(f"🕐 Market Session: {current_session.value}", "yellow")
+                cprint(f"⏰ Time (UTC): {session_info['current_time_utc']}", "yellow")
+                cprint(f"🇳🇱 Time (NL):  {session_info['current_time_nl']}", "yellow")
+                cprint(f"📅 Day: {session_info['weekday']}", "yellow")
+
+                if session_info['is_weekend']:
+                    cprint("⚠️  Weekend - Markets closed or low liquidity", "red")
+                    cprint("Skipping analysis cycle\n", "red")
+                    return
+
+                cprint("")  # Empty line
+
             # Check account
             account = get_account_info()
             if account is None:
@@ -359,6 +381,23 @@ Provide your trading recommendation."""
             for symbol in self.symbols:
                 try:
                     cprint(f"\n🔍 Analyzing {symbol}...", "cyan")
+
+                    # Check if optimal trading time for this asset class
+                    if config.MT5_USE_TRADING_HOURS_FILTER:
+                        asset_class = detect_asset_class(symbol)
+                        is_optimal, reason = is_optimal_trading_time(
+                            asset_class,
+                            strict=config.MT5_STRICT_HOURS
+                        )
+
+                        if not is_optimal:
+                            formatted_name, emoji = format_asset_name(symbol)
+                            cprint(f"⏸️  {emoji} {formatted_name} ({asset_class}): {reason}", "yellow")
+                            continue
+
+                        # Show optimal status
+                        formatted_name, emoji = format_asset_name(symbol)
+                        cprint(f"✅ {emoji} {formatted_name} ({asset_class}): {reason}", "green")
 
                     # Get OHLCV data
                     df = get_ohlcv_data(symbol, timeframe='1H', bars=200)

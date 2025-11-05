@@ -233,9 +233,22 @@ MT5_MAX_POSITIONS_PER_SYMBOL = 1  # Max positions per symbol
 MT5_MODEL_TYPE = 'anthropic'    # AI model: anthropic, openai, deepseek, groq
 MT5_MIN_CONFIDENCE = 75         # Minimum AI confidence % to execute trade (0-100)
 
+# Trading Hours & Volatility Filter ⏰
+MT5_USE_TRADING_HOURS_FILTER = True  # Enable optimal trading hours filter
+MT5_STRICT_HOURS = True               # True = only best hours, False = allow good hours
+# When enabled, system will ONLY trade during high-volatility periods:
+# - Forex: London/NY overlap (13:00-17:00 UTC) + London morning (08:00-12:00 UTC)
+# - Gold: NY session (13:00-20:00 UTC)
+# - Indices: Mid-day stable hours (15:00-20:00 UTC), avoiding first/last 30min
+# - Stocks: Mid-day hours (15:30-19:30 UTC), avoiding opening/closing volatility
+
+MT5_AVOID_MONDAY_EARLY = True        # Avoid Monday before 08:00 UTC (weekend gaps)
+MT5_AVOID_FRIDAY_LATE = True         # Avoid Friday after 20:00 UTC (weekend risk)
+MT5_AVOID_LOW_VOLATILITY = True      # Skip trades during Asian session (low vol)
+
 # Sandbox/Test Mode Settings 🧪
 SANDBOX_MODE = False            # Enable for testing without real broker
-SANDBOX_STARTING_BALANCE = 10000  # Virtual account balance for sandbox
+SANDBOX_STARTING_BALANCE = 150000  # Virtual account balance for sandbox (150k)
 SANDBOX_USE_MOCK_DATA = False   # Use generated mock market data
 SANDBOX_SIMULATE_TRADES = False # Simulate trade execution without MT5
 
