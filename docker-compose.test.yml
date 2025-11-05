@@ -4,7 +4,52 @@
 version: '3.8'
 
 services:
-  # Sandbox Test Runner
+  # 24-Hour Trading System Test (MAIN TEST)
+  test-24h:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    container_name: moondev-test-24h
+    env_file:
+      - .env
+    environment:
+      - SANDBOX_MODE=true
+      - SANDBOX_STARTING_BALANCE=150000
+      - MT5_ENABLED=true
+      - MT5_MAX_POSITIONS=1
+      - MT5_USE_TRADING_HOURS_FILTER=true
+      - LOG_LEVEL=INFO
+      - PYTHONUNBUFFERED=1
+    command: ["python", "tests/test_24h_trading.py", "--duration", "24", "--interval", "15", "--skip-mt5"]
+    volumes:
+      - ./tests/results:/app/tests/results
+      - ./logs:/app/logs
+      - ./src/data:/app/src/data
+      - ./.env:/app/.env:ro
+    networks:
+      - test-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 4G
+        reservations:
+          cpus: '1.0'
+          memory: 2G
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "5"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import sys; from pathlib import Path; sys.exit(0 if Path('/app/tests/results').exists() else 1)"]
+      interval: 5m
+      timeout: 30s
+      retries: 3
+      start_period: 1m
+
+  # Sandbox Test Runner (Quick tests)
   test-sandbox:
     build:
       context: .
@@ -23,6 +68,8 @@ services:
       - ./tests:/app/tests
     networks:
       - test-network
+    profiles:
+      - quick
 
   # Mock MT5 Simulator Test
   test-mock-mt5:

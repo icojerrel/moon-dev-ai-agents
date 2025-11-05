@@ -6,7 +6,6 @@ This module provides integration with MetaTrader 5 for forex and CFD trading.
 Follows the same pattern as nice_funcs_hl.py for consistency.
 """
 
-import MetaTrader5 as mt5
 import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
@@ -14,6 +13,26 @@ from termcolor import cprint
 from typing import Optional, Dict, List, Tuple
 import os
 from dotenv import load_dotenv
+
+# Conditional MT5 import - allows running on non-Windows systems
+try:
+    import MetaTrader5 as mt5
+    MT5_AVAILABLE = True
+except ImportError:
+    MT5_AVAILABLE = False
+    cprint("⚠️  MetaTrader5 not available - running in mock mode", "yellow")
+    # Create mock mt5 module for testing
+    class MockMT5:
+        """Mock MT5 module for testing on non-Windows systems"""
+        def initialize(self, *args, **kwargs):
+            return False
+        def login(self, *args, **kwargs):
+            return False
+        def shutdown(self):
+            pass
+        def last_error(self):
+            return (0, "Mock MT5 - not available on this system")
+    mt5 = MockMT5()
 
 load_dotenv()
 

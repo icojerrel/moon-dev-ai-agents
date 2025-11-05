@@ -249,10 +249,10 @@ MT5_AVOID_FRIDAY_LATE = True         # Avoid Friday after 20:00 UTC (weekend ris
 MT5_AVOID_LOW_VOLATILITY = True      # Skip trades during Asian session (low vol)
 
 # Sandbox/Test Mode Settings 🧪
-SANDBOX_MODE = False            # Enable for testing without real broker
+SANDBOX_MODE = True             # Enable for testing without real broker
 SANDBOX_STARTING_BALANCE = 150000  # Virtual account balance for sandbox (150k)
 SANDBOX_USE_MOCK_DATA = False   # Use generated mock market data
-SANDBOX_SIMULATE_TRADES = False # Simulate trade execution without MT5
+SANDBOX_SIMULATE_TRADES = True  # Simulate trade execution without MT5
 
 # Future variables (not active yet) 🔮
 sell_at_multiple = 3
