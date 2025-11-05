@@ -1,0 +1,54 @@
+# Moon Dev AI Trading System - Systemd Service
+# Install to: /etc/systemd/system/moondev-trading.service
+#
+# Installation:
+#   sudo cp moondev-trading.service /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable moondev-trading
+#   sudo systemctl start moondev-trading
+#
+# Management:
+#   sudo systemctl status moondev-trading
+#   sudo systemctl stop moondev-trading
+#   sudo systemctl restart moondev-trading
+#   sudo journalctl -u moondev-trading -f
+
+[Unit]
+Description=Moon Dev AI Trading System
+After=network.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=moondev
+Group=moondev
+WorkingDirectory=/home/moondev/moon-dev-ai-agents
+Environment="PATH=/home/moondev/miniconda3/envs/tflow/bin:/usr/local/bin:/usr/bin:/bin"
+Environment="PYTHONUNBUFFERED=1"
+
+# Main command
+ExecStart=/home/moondev/miniconda3/envs/tflow/bin/python src/main.py
+
+# Restart policy
+Restart=always
+RestartSec=10
+StartLimitInterval=400
+StartLimitBurst=5
+
+# Resource limits (adjust as needed)
+MemoryLimit=4G
+CPUQuota=200%
+
+# Logging
+StandardOutput=append:/home/moondev/moon-dev-ai-agents/logs/systemd.log
+StandardError=append:/home/moondev/moon-dev-ai-agents/logs/systemd_error.log
+
+# Security hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/home/moondev/moon-dev-ai-agents/logs /home/moondev/moon-dev-ai-agents/src/data
+
+[Install]
+WantedBy=multi-user.target
