@@ -1,0 +1,74 @@
+# Moon Dev AI Trading Agents - Test Environment
+# Docker Compose for sandbox testing
+
+version: '3.8'
+
+services:
+  # Sandbox Test Runner
+  test-sandbox:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: moondev-test-sandbox
+    environment:
+      - SANDBOX_MODE=true
+      - SANDBOX_STARTING_BALANCE=10000
+      - SANDBOX_USE_MOCK_DATA=true
+      - SANDBOX_SIMULATE_TRADES=true
+      - LOG_LEVEL=DEBUG
+      - JSON_LOGS=false
+    command: ["python", "tests/test_mt5_sandbox.py"]
+    volumes:
+      - ./logs:/app/logs
+      - ./tests:/app/tests
+    networks:
+      - test-network
+
+  # Mock MT5 Simulator Test
+  test-mock-mt5:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: moondev-test-mock-mt5
+    command: ["python", "src/utils/mock_mt5.py"]
+    volumes:
+      - ./logs:/app/logs
+    networks:
+      - test-network
+
+  # Asset Detection Test
+  test-asset-detection:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: moondev-test-assets
+    command: ["python", "src/utils/mt5_helpers.py"]
+    volumes:
+      - ./logs:/app/logs
+    networks:
+      - test-network
+
+  # Full Integration Test (with mock AI)
+  test-integration:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: moondev-test-integration
+    environment:
+      - SANDBOX_MODE=true
+      - MT5_ENABLED=true
+      - MT5_MAX_POSITIONS=1
+      - LOG_LEVEL=INFO
+    command: ["python", "tests/test_integration.py"]
+    volumes:
+      - ./logs:/app/logs
+      - ./tests:/app/tests
+      - ./src:/app/src
+    networks:
+      - test-network
+    profiles:
+      - integration
+
+networks:
+  test-network:
+    driver: bridge

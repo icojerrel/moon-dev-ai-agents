@@ -228,10 +228,16 @@ MT5_TIMEFRAMES = {
 
 # Global MT5 Settings
 MT5_MAX_POSITION_SIZE = 1.0     # Maximum position size in lots
-MT5_MAX_POSITIONS = 5           # Maximum concurrent positions (across all assets)
+MT5_MAX_POSITIONS = 1           # ⚠️ MAXIMUM 1 POSITION AT A TIME (strict risk control)
 MT5_MAX_POSITIONS_PER_SYMBOL = 1  # Max positions per symbol
 MT5_MODEL_TYPE = 'anthropic'    # AI model: anthropic, openai, deepseek, groq
 MT5_MIN_CONFIDENCE = 75         # Minimum AI confidence % to execute trade (0-100)
+
+# Sandbox/Test Mode Settings 🧪
+SANDBOX_MODE = False            # Enable for testing without real broker
+SANDBOX_STARTING_BALANCE = 10000  # Virtual account balance for sandbox
+SANDBOX_USE_MOCK_DATA = False   # Use generated mock market data
+SANDBOX_SIMULATE_TRADES = False # Simulate trade execution without MT5
 
 # Future variables (not active yet) 🔮
 sell_at_multiple = 3
