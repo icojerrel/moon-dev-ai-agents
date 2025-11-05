@@ -105,6 +105,21 @@ REALTIME_CLIPS_AI_MODEL = 'groq'  # Model type: groq, openai, claude, deepseek, 
 REALTIME_CLIPS_AI_MODEL_NAME = None  # None = use default for model type
 REALTIME_CLIPS_TWITTER = True  # Auto-open Twitter compose after clip
 
+# MetaTrader 5 Settings 💹
+MT5_ENABLED = False  # Enable MT5 trading agent
+MT5_SYMBOLS = [
+    'EURUSD',  # Euro vs US Dollar
+    'GBPUSD',  # British Pound vs US Dollar
+    'USDJPY',  # US Dollar vs Japanese Yen
+    # 'BTCUSD',  # Bitcoin (if available on your broker)
+    # 'XAUUSD',  # Gold
+    # 'US30',    # Dow Jones
+]
+MT5_MAX_POSITION_SIZE = 0.01  # Maximum position size in lots (0.01 = micro lot)
+MT5_MAX_POSITIONS = 3  # Maximum concurrent positions
+MT5_MODEL_TYPE = 'anthropic'  # AI model: anthropic, openai, deepseek, groq, gemini, ollama
+MT5_MIN_CONFIDENCE = 70  # Minimum AI confidence % to execute trade (0-100)
+
 # Future variables (not active yet) 🔮
 sell_at_multiple = 3
 USDC_SIZE = 1

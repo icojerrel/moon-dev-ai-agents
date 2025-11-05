@@ -42,6 +42,7 @@ feel free to join our discord if you beleive ai agents will be integrated into t
 - compliance agent (`compliance_agent.py`): compliance agent to make sure all arbitrage ads are compliant on facebook... tiktok coming soon...
 - research agent (`research_agent`): an agent to fill the ideas.txt so the rbi agent can run forever
 - real time clips agent (`src/agents/realtime_clips_agent.py`): an ai agent that makes real time clips of streamers using obs
+- **MT5 trading agent** (`mt5_trading_agent.py`): AI-powered forex and CFD trading via MetaTrader 5 integration with support for multiple brokers, symbols, and automated position management 💹
 
 **⚠️ IMPORTANT: This is an experimental project. There are NO guarantees of profitability. Trading involves substantial risk of loss.**
 
