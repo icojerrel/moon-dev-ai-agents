@@ -174,9 +174,31 @@ class OpenRouterModel(BaseModel):
 
         except Exception as e:
             cprint(f"❌ OpenRouter generation error: {str(e)}", "red")
+
+            # Detailed error handling based on OpenRouter docs
             try:
                 if hasattr(e, 'status_code'):
-                    cprint(f"🔎 Status code: {e.status_code}", "yellow")
+                    status = e.status_code
+                    cprint(f"🔎 Status code: {status}", "yellow")
+
+                    # Provide helpful messages based on OpenRouter error docs
+                    if status == 400:
+                        cprint("💡 Bad Request - Check your parameters", "yellow")
+                    elif status == 401:
+                        cprint("💡 Invalid API key - Check OPENROUTER_API_KEY in .env", "yellow")
+                    elif status == 402:
+                        cprint("💡 Insufficient credits - Add credits at https://openrouter.ai/credits", "yellow")
+                    elif status == 403:
+                        cprint("💡 Access forbidden - Input may be flagged or IP blocked", "yellow")
+                    elif status == 408:
+                        cprint("💡 Request timeout - Try again", "yellow")
+                    elif status == 429:
+                        cprint("💡 Rate limited - Wait before retrying", "yellow")
+                    elif status == 502:
+                        cprint("💡 Model down or invalid response", "yellow")
+                    elif status == 503:
+                        cprint("💡 No available model provider - Try different model", "yellow")
+
                 if hasattr(e, 'response'):
                     cprint(f"🔎 Response: {e.response}", "yellow")
             except Exception:
