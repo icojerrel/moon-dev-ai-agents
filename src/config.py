@@ -106,7 +106,7 @@ REALTIME_CLIPS_AI_MODEL_NAME = None  # None = use default for model type
 REALTIME_CLIPS_TWITTER = True  # Auto-open Twitter compose after clip
 
 # MetaTrader 5 Settings 💹
-MT5_ENABLED = False  # Enable MT5 trading agent
+MT5_ENABLED = True  # Enable MT5 trading agent ✅
 
 # Multi-Asset Trading Configuration
 # Choose symbols from different asset classes based on your broker
@@ -230,7 +230,9 @@ MT5_TIMEFRAMES = {
 MT5_MAX_POSITION_SIZE = 1.0     # Maximum position size in lots
 MT5_MAX_POSITIONS = 1           # ⚠️ MAXIMUM 1 POSITION AT A TIME (strict risk control)
 MT5_MAX_POSITIONS_PER_SYMBOL = 1  # Max positions per symbol
-MT5_MODEL_TYPE = 'anthropic'    # AI model: anthropic, openai, deepseek, groq
+MT5_MODEL_TYPE = 'openrouter'   # AI model provider: openrouter (unified), anthropic, openai, deepseek, groq
+MT5_MODEL_NAME = 'deepseek/deepseek-chat-v3-0324'  # Primary model (powerful & affordable!)
+MT5_FALLBACK_MODEL = 'anthropic/claude-sonnet-4.5'  # Fallback model if primary fails
 MT5_MIN_CONFIDENCE = 75         # Minimum AI confidence % to execute trade (0-100)
 
 # Trading Hours & Volatility Filter ⏰
