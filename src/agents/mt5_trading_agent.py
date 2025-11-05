@@ -33,8 +33,19 @@ from src.nice_funcs_mt5 import (
 from src.config import (
     AI_MODEL,
     AI_MAX_TOKENS,
-    AI_TEMPERATURE
+    AI_TEMPERATURE,
+    MT5_SYMBOLS,
+    MT5_MODEL_TYPE,
+    MT5_MIN_CONFIDENCE,
 )
+from src.utils.mt5_helpers import (
+    detect_asset_class,
+    get_asset_params,
+    format_asset_name,
+    get_market_context,
+    calculate_position_size
+)
+import src.config as config
 
 
 class MT5TradingAgent:
@@ -87,7 +98,7 @@ class MT5TradingAgent:
 
     def get_market_analysis(self, symbol: str, df: pd.DataFrame) -> Dict:
         """
-        Get AI analysis for a symbol
+        Get AI analysis for a symbol with asset class awareness
 
         Args:
             symbol: Trading symbol
@@ -97,6 +108,12 @@ class MT5TradingAgent:
             Dict with analysis results
         """
         try:
+            # Detect asset class and get parameters
+            asset_class = detect_asset_class(symbol)
+            asset_params = get_asset_params(symbol, config)
+            market_context = get_market_context(symbol, asset_class)
+            formatted_name, emoji = format_asset_name(symbol)
+
             # Prepare market data summary
             latest = df.iloc[-1]
             prev = df.iloc[-2]
@@ -104,34 +121,47 @@ class MT5TradingAgent:
             # Calculate key metrics
             price_change = ((latest['Close'] - prev['Close']) / prev['Close']) * 100
 
-            # Build analysis prompt
-            system_prompt = """You are an expert forex and CFD trading analyst.
+            # Build asset-specific analysis prompt
+            system_prompt = f"""You are an expert multi-asset trading analyst specializing in {asset_class}.
 Analyze the provided market data and technical indicators to make a trading decision.
 
+{market_context}
+
 Provide your analysis in the following JSON format:
-{
+{{
     "action": "BUY" | "SELL" | "HOLD",
     "confidence": 0-100,
-    "reasoning": "Brief explanation of your decision",
-    "stop_loss_pips": number (suggested SL in pips from entry),
-    "take_profit_pips": number (suggested TP in pips from entry),
-    "position_size": 0.01-1.0 (suggested lot size)
-}
+    "reasoning": "Brief explanation of your decision (50-100 words)",
+    "stop_loss_pips": number (suggested SL in pips from entry, {asset_params['min_stop_loss_pips']}-{asset_params['max_stop_loss_pips']}),
+    "take_profit_pips": number (suggested TP in pips from entry, aim for {asset_params['default_tp_ratio']}:1 RR),
+    "position_size": {asset_params['position_size']} (recommended for this asset class)
+}}
 
-Consider:
-- Trend direction (SMAs)
+Asset Class Specific Guidelines:
+- This is a {asset_class} instrument
+- Recommended position size: {asset_params['position_size']} lots
+- Maximum spread: {asset_params['max_spread_pips']} pips
+- Risk/Reward target: {asset_params['default_tp_ratio']}:1
+
+Technical Analysis:
+- Trend direction (SMAs 20/50/200)
 - Momentum (RSI, MACD)
 - Volatility (Bollinger Bands)
 - Support/Resistance levels
-- Risk/Reward ratio
+- Volume confirmation
 
-Be conservative. Only suggest trades with high probability setups."""
+Be conservative. Only suggest trades with:
+- Clear trend/momentum alignment
+- Confidence > 75%
+- Risk/Reward > 1.5:1
+- Favorable technical setup"""
 
-            user_content = f"""Symbol: {symbol}
+            user_content = f"""Symbol: {formatted_name} ({symbol}) {emoji}
+Asset Class: {asset_class.upper()}
 
-Current Data:
+Current Market Data:
 - Price: {latest['Close']:.5f}
-- Price Change: {price_change:.2f}%
+- Price Change (1 bar): {price_change:.2f}%
 - Volume: {latest['Volume']}
 - Spread: {latest.get('Spread', 'N/A')}
 
