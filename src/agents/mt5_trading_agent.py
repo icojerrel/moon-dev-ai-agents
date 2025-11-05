@@ -17,7 +17,7 @@ from typing import Dict, List, Optional
 project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.append(project_root)
 
-from src.models.model_factory import ModelFactory
+from src.models.model_factory import model_factory
 from src.nice_funcs_mt5 import (
     get_account_info,
     get_symbol_info,
@@ -36,6 +36,7 @@ from src.config import (
     AI_TEMPERATURE,
     MT5_SYMBOLS,
     MT5_MODEL_TYPE,
+    MT5_MODEL_NAME,
     MT5_MIN_CONFIDENCE,
 )
 from src.utils.mt5_helpers import (
@@ -85,14 +86,17 @@ class MT5TradingAgent:
         """
         self.symbols = symbols or ['EURUSD', 'GBPUSD', 'USDJPY']
         self.model_type = model_type
-        self.model_name = model_name or AI_MODEL
+        self.model_name = model_name or MT5_MODEL_NAME  # Use MT5-specific model name from config
         self.max_position_size = max_position_size
         self.max_positions = max_positions
 
-        # Initialize AI model
+        # Initialize AI model with specific model name
         try:
-            self.model = ModelFactory.create_model(model_type)
-            cprint(f"✅ Initialized MT5 agent with {model_type} model", "green")
+            self.model = model_factory.get_model(model_type, model_name=self.model_name)
+            if self.model:
+                cprint(f"✅ Initialized MT5 agent with {model_type} ({self.model_name})", "green")
+            else:
+                raise Exception(f"Failed to get model {model_type}")
         except Exception as e:
             cprint(f"❌ Failed to initialize AI model: {str(e)}", "red")
             raise
@@ -460,11 +464,14 @@ if __name__ == "__main__":
     ]
 
     try:
+        # Import config settings
+        from src.config import MT5_MODEL_TYPE, MT5_MAX_POSITION_SIZE, MT5_MAX_POSITIONS
+
         agent = MT5TradingAgent(
             symbols=SYMBOLS,
-            model_type='anthropic',  # or 'openai', 'deepseek', 'groq'
-            max_position_size=0.01,  # 0.01 lots = micro lot
-            max_positions=3
+            model_type=MT5_MODEL_TYPE,  # Uses config setting (openrouter, anthropic, etc.)
+            max_position_size=MT5_MAX_POSITION_SIZE,  # From config
+            max_positions=MT5_MAX_POSITIONS  # From config (currently 1)
         )
 
         # Run once for testing
