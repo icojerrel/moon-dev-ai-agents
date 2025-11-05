@@ -65,23 +65,38 @@ def get_mock_account_info() -> Dict:
 
 def get_mock_symbol_info(symbol: str) -> Dict:
     """Generate mock symbol info for sandbox/testing"""
-    # Different spreads for different asset classes
-    if 'XAU' in symbol or 'GOLD' in symbol:
-        spread = 30  # Gold
+    # Different spreads and parameters for different asset classes
+
+    # Stocks (AAPL, MSFT, etc.)
+    if symbol in ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'NVDA', 'TSLA', 'META', 'NFLX']:
+        spread = 2  # Stocks typically 2-5 cents spread
+        point = 0.01  # $0.01 per point
+        contract_size = 100  # 100 shares per lot
+
+    # Gold
+    elif 'XAU' in symbol or 'GOLD' in symbol:
+        spread = 30  # Gold 30-50 pips spread
         point = 0.01
+        contract_size = 100
+
+    # Forex
     elif any(x in symbol for x in ['EUR', 'GBP', 'USD', 'JPY']):
-        spread = 10  # Forex
+        spread = 10  # Forex 1-2 pips spread
         point = 0.00001
+        contract_size = 100000
+
+    # Other
     else:
-        spread = 20  # Other
+        spread = 20
         point = 0.01
+        contract_size = 100
 
     return {
         'symbol': symbol,
         'point': point,
         'digits': 5 if point == 0.00001 else 2,
         'spread': spread,
-        'trade_contract_size': 100000 if point == 0.00001 else 100,
+        'trade_contract_size': contract_size,
         'volume_min': 0.01,
         'volume_max': 100.0,
         'volume_step': 0.01,
@@ -91,8 +106,27 @@ def get_mock_ohlcv(symbol: str, timeframe: str = '1H', bars: int = 100) -> pd.Da
     """Generate realistic mock OHLCV data for sandbox/testing"""
     import random
 
-    # Base prices for different instruments
-    if 'EUR' in symbol and 'USD' in symbol:
+    # Base prices for different instruments (realistic 2024 prices)
+
+    # US Stocks
+    if symbol == 'AAPL':
+        base_price = 230.00  # Apple ~$230
+        volatility = 2.0
+    elif symbol == 'MSFT':
+        base_price = 420.00  # Microsoft ~$420
+        volatility = 3.5
+    elif symbol == 'GOOGL':
+        base_price = 175.00  # Google ~$175
+        volatility = 2.5
+    elif symbol == 'AMZN':
+        base_price = 185.00  # Amazon ~$185
+        volatility = 3.0
+    elif symbol == 'NVDA':
+        base_price = 140.00  # Nvidia ~$140
+        volatility = 4.0  # NVDA has high volatility
+
+    # Forex
+    elif 'EUR' in symbol and 'USD' in symbol:
         base_price = 1.0850
         volatility = 0.0005
     elif 'GBP' in symbol and 'USD' in symbol:
@@ -101,9 +135,13 @@ def get_mock_ohlcv(symbol: str, timeframe: str = '1H', bars: int = 100) -> pd.Da
     elif 'USD' in symbol and 'JPY' in symbol:
         base_price = 149.50
         volatility = 0.15
+
+    # Gold
     elif 'XAU' in symbol or 'GOLD' in symbol:
         base_price = 2650.00
         volatility = 5.0
+
+    # Default
     else:
         base_price = 100.0
         volatility = 0.5

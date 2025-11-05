@@ -84,7 +84,19 @@ class MT5TradingAgent:
             max_position_size: Maximum position size in lots
             max_positions: Maximum number of concurrent positions
         """
-        self.symbols = symbols or ['EURUSD', 'GBPUSD', 'USDJPY', 'XAUUSD']  # Added XAUUSD (Gold)
+        # Default symbols: 3 forex pairs + 1 gold + 5 top US stocks
+        self.symbols = symbols or [
+            # Forex pairs (optimal hours: 13:00-17:00 UTC)
+            'EURUSD', 'GBPUSD', 'USDJPY',
+            # Gold (optimal hours: 13:00-20:00 UTC)
+            'XAUUSD',
+            # Top 5 US stocks by market cap (optimal hours: 15:30-19:30 UTC)
+            'AAPL',   # Apple - $3.0T market cap
+            'MSFT',   # Microsoft - $2.8T market cap
+            'GOOGL',  # Alphabet/Google - $1.7T market cap
+            'AMZN',   # Amazon - $1.5T market cap
+            'NVDA',   # Nvidia - $1.5T market cap
+        ]
         self.model_type = model_type
         self.model_name = model_name or MT5_MODEL_NAME  # Use MT5-specific model name from config
         self.max_position_size = max_position_size
