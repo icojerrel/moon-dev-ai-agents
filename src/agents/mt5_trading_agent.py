@@ -84,7 +84,7 @@ class MT5TradingAgent:
             max_position_size: Maximum position size in lots
             max_positions: Maximum number of concurrent positions
         """
-        self.symbols = symbols or ['EURUSD', 'GBPUSD', 'USDJPY']
+        self.symbols = symbols or ['EURUSD', 'GBPUSD', 'USDJPY', 'XAUUSD']  # Added XAUUSD (Gold)
         self.model_type = model_type
         self.model_name = model_name or MT5_MODEL_NAME  # Use MT5-specific model name from config
         self.max_position_size = max_position_size
