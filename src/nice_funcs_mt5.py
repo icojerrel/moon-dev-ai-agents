@@ -42,6 +42,105 @@ MT5_PASSWORD = os.getenv('MT5_PASSWORD', '')
 MT5_SERVER = os.getenv('MT5_SERVER', '')
 MT5_PATH = os.getenv('MT5_PATH', '')  # Path to MT5 terminal (Windows/Wine)
 
+# ============================================================================
+# Mock Data Functions for Sandbox/Development Mode
+# ============================================================================
+
+def get_mock_account_info() -> Dict:
+    """Generate mock account info for sandbox/testing"""
+    from src.config import SANDBOX_STARTING_BALANCE
+    return {
+        'login': 98594810,
+        'balance': SANDBOX_STARTING_BALANCE,
+        'equity': SANDBOX_STARTING_BALANCE,
+        'margin': 0.0,
+        'free_margin': SANDBOX_STARTING_BALANCE,
+        'margin_level': 0.0,
+        'profit': 0.0,
+        'currency': 'USD',
+        'leverage': 100,
+        'server': 'Mock-Demo',
+        'company': 'Mock Trading Server',
+    }
+
+def get_mock_symbol_info(symbol: str) -> Dict:
+    """Generate mock symbol info for sandbox/testing"""
+    # Different spreads for different asset classes
+    if 'XAU' in symbol or 'GOLD' in symbol:
+        spread = 30  # Gold
+        point = 0.01
+    elif any(x in symbol for x in ['EUR', 'GBP', 'USD', 'JPY']):
+        spread = 10  # Forex
+        point = 0.00001
+    else:
+        spread = 20  # Other
+        point = 0.01
+
+    return {
+        'symbol': symbol,
+        'point': point,
+        'digits': 5 if point == 0.00001 else 2,
+        'spread': spread,
+        'trade_contract_size': 100000 if point == 0.00001 else 100,
+        'volume_min': 0.01,
+        'volume_max': 100.0,
+        'volume_step': 0.01,
+    }
+
+def get_mock_ohlcv(symbol: str, timeframe: str = '1H', bars: int = 100) -> pd.DataFrame:
+    """Generate realistic mock OHLCV data for sandbox/testing"""
+    import random
+
+    # Base prices for different instruments
+    if 'EUR' in symbol and 'USD' in symbol:
+        base_price = 1.0850
+        volatility = 0.0005
+    elif 'GBP' in symbol and 'USD' in symbol:
+        base_price = 1.2650
+        volatility = 0.0008
+    elif 'USD' in symbol and 'JPY' in symbol:
+        base_price = 149.50
+        volatility = 0.15
+    elif 'XAU' in symbol or 'GOLD' in symbol:
+        base_price = 2650.00
+        volatility = 5.0
+    else:
+        base_price = 100.0
+        volatility = 0.5
+
+    # Generate timestamps
+    now = datetime.now()
+    timestamps = [now - timedelta(hours=(bars - i)) for i in range(bars)]
+
+    # Generate price data with random walk
+    data = []
+    current_price = base_price
+
+    for ts in timestamps:
+        # Random walk
+        change = random.gauss(0, volatility)
+        current_price += change
+
+        # Generate OHLC from current price
+        high = current_price + abs(random.gauss(0, volatility/2))
+        low = current_price - abs(random.gauss(0, volatility/2))
+        open_price = current_price + random.gauss(0, volatility/4)
+        close = current_price
+        volume = random.randint(1000, 10000)
+
+        data.append({
+            'time': ts,
+            'open': open_price,
+            'high': high,
+            'low': low,
+            'close': close,
+            'volume': volume,
+        })
+
+        current_price = close
+
+    return pd.DataFrame(data)
+
 
 class MT5Connection:
     """Singleton MT5 connection manager"""
@@ -109,6 +208,11 @@ def get_account_info() -> Optional[Dict]:
     Returns:
         Dict with account info or None if error
     """
+    # Return mock data in sandbox mode or when MT5 not available
+    from src.config import SANDBOX_MODE
+    if SANDBOX_MODE or not MT5_AVAILABLE:
+        return get_mock_account_info()
+
     if not ensure_connection():
         return None
 
@@ -146,6 +250,11 @@ def get_symbol_info(symbol: str) -> Optional[Dict]:
     Returns:
         Dict with symbol info or None if error
     """
+    # Return mock data in sandbox mode or when MT5 not available
+    from src.config import SANDBOX_MODE
+    if SANDBOX_MODE or not MT5_AVAILABLE:
+        return get_mock_symbol_info(symbol)
+
     if not ensure_connection():
         return None
 
@@ -195,6 +304,22 @@ def get_ohlcv_data(
     Returns:
         DataFrame with OHLCV data or None if error
     """
+    # Return mock data in sandbox mode or when MT5 not available
+    from src.config import SANDBOX_MODE
+    if SANDBOX_MODE or not MT5_AVAILABLE:
+        df = get_mock_ohlcv(symbol, timeframe, bars)
+        # Rename columns to match MT5 format
+        df.rename(columns={
+            'open': 'Open',
+            'high': 'High',
+            'low': 'Low',
+            'close': 'Close',
+            'volume': 'Volume',
+        }, inplace=True)
+        df.set_index('time', inplace=True)
+        cprint(f"✅ Generated {len(df)} mock bars for {symbol} ({timeframe})", "cyan")
+        return df
+
     if not ensure_connection():
         return None
 
@@ -264,6 +389,11 @@ def get_positions() -> Optional[pd.DataFrame]:
     Returns:
         DataFrame with positions or None if error
     """
+    # Return empty DataFrame in sandbox mode (no positions yet)
+    from src.config import SANDBOX_MODE
+    if SANDBOX_MODE or not MT5_AVAILABLE:
+        return pd.DataFrame()
+
     if not ensure_connection():
         return None
 
