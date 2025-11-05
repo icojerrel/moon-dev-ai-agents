@@ -10,8 +10,8 @@
 ### 1. **MT5 Demo Account** ✅
 
 ```
-Account:  98594810
-Password: J_R0PyKk (Read-only: !5CzLvHv)
+Account:  [Configured in .env]
+Password: [Configured in .env]
 Server:   MetaQuotes-Demo
 Type:     DEMO (risk-free testing)
 ```
@@ -22,7 +22,7 @@ Type:     DEMO (risk-free testing)
 
 ```
 API:      OpenRouter unified API
-Key:      sk-or-v1-2aa8...b409 (configured)
+Key:      [YOUR_KEY_HERE] (get from OpenRouter)
 Primary:  DeepSeek Chat V3 (powerful & affordable)
 Fallback: Claude Sonnet 4.5 (reliable)
 ```
@@ -175,7 +175,7 @@ else:
 **Expected:**
 ```
 ✅ MT5 initialized!
-✅ Account: 98594810
+✅ Account: [your account number]
 💰 Balance: 10000.00 USD
 💵 Equity: 10000.00
 ```
@@ -275,12 +275,12 @@ python src/agents/mt5_trading_agent.py
 
 ```bash
 # MT5 Credentials
-MT5_LOGIN=98594810
-MT5_PASSWORD=J_R0PyKk
+MT5_LOGIN=your_mt5_account_number
+MT5_PASSWORD=your_mt5_password
 MT5_SERVER=MetaQuotes-Demo
 
 # OpenRouter AI
-OPENROUTER_API_KEY=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
+OPENROUTER_API_KEY=your_openrouter_api_key_here
 
 # Telegram (optional but recommended)
 TELEGRAM_ALERTS_ENABLED=false
@@ -393,7 +393,7 @@ MT5_INDICES = ['US30', 'NAS100', 'SPX500']
 ## 🚨 Important Notes
 
 ### **Demo Account Only**
-- This is a DEMO account (98594810)
+- This is a DEMO account
 - Virtual money only
 - No real financial risk
 - Perfect for testing and learning
