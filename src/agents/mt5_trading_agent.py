@@ -101,9 +101,18 @@ class MT5TradingAgent:
             cprint(f"❌ Failed to initialize AI model: {str(e)}", "red")
             raise
 
-        # Ensure MT5 connection
-        if not ensure_connection():
-            raise Exception("Failed to connect to MT5")
+        # Ensure MT5 connection (skip in sandbox/mock mode)
+        from src.config import SANDBOX_MODE
+        from src.nice_funcs_mt5 import MT5_AVAILABLE
+
+        if not SANDBOX_MODE and MT5_AVAILABLE:
+            if not ensure_connection():
+                raise Exception("Failed to connect to MT5")
+        else:
+            if SANDBOX_MODE:
+                cprint("✅ Running in SANDBOX MODE - MT5 connection not required", "cyan")
+            else:
+                cprint("⚠️  MT5 not available on this system - running in mock mode", "yellow")
 
     def get_market_analysis(self, symbol: str, df: pd.DataFrame) -> Dict:
         """
