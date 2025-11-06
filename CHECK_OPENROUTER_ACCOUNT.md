@@ -54,7 +54,7 @@ Dit test of de API werkt.
 
 ## API Key Details
 
-Je huidige key: `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`
+Je huidige key: `sk-or-v1-****************************** (REDACTED - check .env file)`
 
 **Test resultaat:**
 - Status: 403 Forbidden
@@ -68,7 +68,7 @@ Je huidige key: `sk-or-v1-ab71724c546c2502e368396e3176227c2a6d028cb178a770bc4102
    ```bash
    curl https://openrouter.ai/api/v1/chat/completions \
      -H "Content-Type: application/json" \
-     -H "Authorization: Bearer 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" \
+     -H "Authorization: Bearer YOUR_OPENROUTER_API_KEY_HERE" \
      -d '{
        "model": "openai/gpt-4o-mini",
        "messages": [{"role": "user", "content": "Hi"}]
