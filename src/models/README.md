@@ -75,6 +75,7 @@ To get started with Ollama:
 4. Check they're ready: `ollama list`
 
 Available Models:
+- `qwen3-coder:30b`: Excellent for code generation and complex reasoning (30B parameters) - DEFAULT
 - `deepseek-r1`: Good for complex reasoning (7B parameters), shows thinking process with <think> tags
 - `gemma:2b`: Fast and efficient for simple tasks, great for high-volume processing
 - `llama3.2`: Balanced model good for most tasks, especially good at following instructions
@@ -90,7 +91,13 @@ Usage Example:
 ```python
 from src.models import model_factory
 
-# Initialize with Llama 3.2 for balanced performance
+# Initialize with default Qwen3-Coder for code generation
+model = factory.get_model("ollama")  # Uses qwen3-coder:30b by default
+
+# Or explicitly specify the model
+model = factory.get_model("ollama", "qwen3-coder:30b")
+
+# Or use Llama 3.2 for balanced performance
 model = factory.get_model("ollama", "llama3.2")
 
 # Or use DeepSeek R1 for complex reasoning
