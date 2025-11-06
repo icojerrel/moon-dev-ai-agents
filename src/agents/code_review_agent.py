@@ -38,6 +38,13 @@ except ImportError:
     ML_AVAILABLE = False
     cprint("⚠️ ML/RL module not available", "yellow")
 
+# Import Knowledge Base module
+try:
+    from src.agents.code_review_knowledge import search_knowledge, get_knowledge_stats, learn_from_youtube, learn_from_pdf
+    KNOWLEDGE_AVAILABLE = True
+except ImportError:
+    KNOWLEDGE_AVAILABLE = False
+
 # Define paths
 PROJECT_ROOT = Path(__file__).parent.parent.parent
 DATA_DIR = PROJECT_ROOT / "src" / "data" / "code_review"
