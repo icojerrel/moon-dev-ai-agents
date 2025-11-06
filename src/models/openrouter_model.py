@@ -248,9 +248,13 @@ class OpenRouterModel(BaseModel):
             cprint(f"\n  ├─ Creating OpenRouter client (via OpenAI SDK)...", "cyan")
             self.client = OpenAI(
                 api_key=self.api_key,
-                base_url="https://openrouter.ai/api/v1"
+                base_url="https://openrouter.ai/api/v1",
+                default_headers={
+                    "HTTP-Referer": "https://github.com/moondevonyt/moon-dev-ai-agents",
+                    "X-Title": "Moon Dev AI Trading System"
+                }
             )
-            cprint(f"  ├─ ✅ OpenRouter client created", "green")
+            cprint(f"  ├─ ✅ OpenRouter client created with required headers", "green")
 
             # Test connection with a simple request
             cprint(f"  ├─ Testing connection with model: {self.model_name}", "cyan")
