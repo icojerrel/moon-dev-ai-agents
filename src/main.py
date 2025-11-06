@@ -26,6 +26,14 @@ from src.agents.strategy_agent import StrategyAgent
 from src.agents.copybot_agent import CopyBotAgent
 from src.agents.sentiment_agent import SentimentAgent
 
+# Try importing MT5 agent (Windows only)
+try:
+    from src.agents.mt5_trading_agent import MT5TradingAgent
+    MT5_AVAILABLE = True
+except ImportError:
+    MT5_AVAILABLE = False
+    cprint("⚠️ MT5 Trading Agent not available (Windows only)", "yellow")
+
 # Load environment variables
 load_dotenv()
 
@@ -36,6 +44,7 @@ ACTIVE_AGENTS = {
     'strategy': False,  # Strategy-based trading agent
     'copybot': False,   # CopyBot agent
     'sentiment': False, # Run sentiment_agent.py directly instead
+    'mt5': False,       # MT5 trading agent (Windows only)
     # whale_agent is run from whale_agent.py
     # Add more agents here as we build them:
     # 'portfolio': False,  # Future portfolio optimization agent
@@ -50,6 +59,19 @@ def run_agents():
         strategy_agent = StrategyAgent() if ACTIVE_AGENTS['strategy'] else None
         copybot_agent = CopyBotAgent() if ACTIVE_AGENTS['copybot'] else None
         sentiment_agent = SentimentAgent() if ACTIVE_AGENTS['sentiment'] else None
+        mt5_agent = None
+
+        # Initialize MT5 agent if available and enabled
+        if ACTIVE_AGENTS['mt5']:
+            if MT5_AVAILABLE:
+                mt5_agent = MT5TradingAgent()
+                if not mt5_agent.connect():
+                    cprint("❌ Failed to connect MT5 agent, disabling...", "red")
+                    mt5_agent = None
+                else:
+                    mt5_agent.initialize_model()
+            else:
+                cprint("⚠️ MT5 agent enabled but not available (Windows only)", "yellow")
 
         while True:
             try:
@@ -80,6 +102,11 @@ def run_agents():
                 if sentiment_agent:
                     cprint("\n🎭 Running Sentiment Analysis...", "cyan")
                     sentiment_agent.run()
+
+                # Run MT5 Trading (if enabled and connected)
+                if mt5_agent:
+                    cprint("\n📊 Running MT5 Trading Agent...", "cyan")
+                    mt5_agent.run_cycle()
 
                 # Sleep until next cycle
                 next_run = datetime.now() + timedelta(minutes=SLEEP_BETWEEN_RUNS_MINUTES)

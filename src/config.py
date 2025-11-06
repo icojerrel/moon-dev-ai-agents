@@ -106,6 +106,40 @@ REALTIME_CLIPS_AI_MODEL = 'groq'  # Model type: groq, openai, claude, deepseek, 
 REALTIME_CLIPS_AI_MODEL_NAME = None  # None = use default for model type
 REALTIME_CLIPS_TWITTER = True  # Auto-open Twitter compose after clip
 
+# MetaTrader 5 Settings 📊
+MT5_ENABLED = True
+MT5_LOGIN = 0  # Your MT5 account login (set in .env as MT5_LOGIN)
+MT5_PASSWORD = ""  # Your MT5 password (set in .env as MT5_PASSWORD)
+MT5_SERVER = ""  # Your MT5 server (set in .env as MT5_SERVER, e.g., "MetaQuotes-Demo")
+MT5_PATH = ""  # Optional: Path to terminal64.exe (auto-detect if empty)
+
+# MT5 Trading Configuration
+MT5_SYMBOLS = [
+    'EURUSD',  # Forex majors
+    'GBPUSD',
+    'USDJPY',
+    'AUDUSD',
+    'USDCAD',
+    'XAUUSD',  # Gold
+    'BTCUSD',  # Crypto CFDs (if available)
+    'ETHUSD',
+]
+
+MT5_TIMEFRAME = 'H1'  # M1, M5, M15, M30, H1, H4, D1, W1, MN1
+MT5_MAGIC_NUMBER = 20250206  # Unique ID for this bot's orders
+MT5_SLIPPAGE = 10  # Max slippage in points
+MT5_LOT_SIZE = 0.01  # Position size in lots
+MT5_MAX_POSITIONS = 5  # Maximum concurrent positions
+MT5_RISK_PERCENT = 1.0  # Risk per trade as % of balance
+
+# MT5 Risk Management
+MT5_USE_STOP_LOSS = True
+MT5_STOP_LOSS_POINTS = 500  # Stop loss in points (50 points = 0.0050 for forex)
+MT5_USE_TAKE_PROFIT = True
+MT5_TAKE_PROFIT_POINTS = 1000  # Take profit in points
+MT5_TRAILING_STOP = False
+MT5_TRAILING_STOP_POINTS = 300
+
 # Future variables (not active yet) 🔮
 sell_at_multiple = 3
 USDC_SIZE = 1
