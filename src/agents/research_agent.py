@@ -8,11 +8,13 @@ Features:
 - Logs ideas to a CSV file with timestamps and model info
 - Appends new ideas to the ideas.txt file for RBI Agent processing
 - Runs in a continuous loop generating new ideas
+- ✅ NEW: YouTube strategy discovery from crypto trading videos!
+- ✅ NEW: Auto-extracts strategies from video transcripts
 
 Created with ❤️ by Moon Dev
 
-[] be able to search youtube
-[] be able to search the web 
+[✅] be able to search youtube - IMPLEMENTED!
+[] be able to search the web
 '''
 
 # PROMPT - Edit this to change the type of ideas generated
@@ -38,6 +40,23 @@ Example good responses:
 "Identify market regime shifts using a combination of volatility term structure and options skew, trading only when both align."
 """
 
+YOUTUBE_STRATEGY_EXTRACTION_PROMPT = """
+You are Moon Dev's YouTube Strategy Extractor 🌙
+
+Extract ONE specific, backtest-able trading strategy from this YouTube video transcript.
+
+Focus on:
+- Clear entry and exit rules
+- Specific technical indicators mentioned
+- Risk management parameters
+- Timeframes and conditions
+
+Output format: A single 1-2 sentence strategy description that can be backtested.
+NO explanations, NO introductions, NO numbering. Just the raw strategy.
+
+If no clear strategy is found, respond with: "No backtest-able strategy found."
+"""
+
 import os
 import time
 import csv
@@ -56,6 +75,9 @@ import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from src.models import model_factory
 
+# Import YouTube utils for strategy discovery
+from src.agents.youtube_utils import YouTubeUtils
+
 # Define paths
 PROJECT_ROOT = Path(__file__).parent.parent.parent  # Points to project root
 DATA_DIR = PROJECT_ROOT / "src" / "data" / "rbi"
@@ -70,6 +92,38 @@ MODELS = [
     {"type": "deepseek", "name": "deepseek-chat"},
     {"type": "deepseek", "name": "deepseek-reasoner"}
 ]
+
+# YouTube Strategy Discovery Configuration
+YOUTUBE_ENABLED = True  # Set to False to disable YouTube discovery
+YOUTUBE_SEARCH_QUERIES = [
+    # Crypto
+    "crypto trading strategy 2025",
+    "bitcoin technical analysis strategy",
+    "altcoin trading indicators",
+    "cryptocurrency momentum strategy",
+    "crypto scalping strategy",
+    "bitcoin swing trading",
+    # Stocks
+    "stock trading strategy 2025",
+    "day trading stocks indicators",
+    "swing trading stocks strategy",
+    "stock market technical analysis",
+    "options trading strategy",
+    # Forex
+    "forex trading strategy",
+    "currency trading indicators",
+    "forex scalping strategy",
+    "forex swing trading",
+    # Indices
+    "index trading strategy",
+    "S&P 500 trading strategy",
+    "futures trading indicators",
+    # General
+    "algorithmic trading strategy",
+    "quantitative trading",
+    "backtesting trading strategy"
+]
+YOUTUBE_VIDEOS_PER_SEARCH = 3  # Number of videos to check per search query
 
 # Fun emojis for animation
 EMOJIS = ["🚀", "💫", "✨", "🌟", "💎", "🔮", "🌙", "⭐", "🌠", "💰", "📈", "🧠"]
@@ -171,7 +225,7 @@ def setup_files():
         cprint(f"📊 Creating ideas CSV at {IDEAS_CSV}", "white", "on_magenta")
         with open(IDEAS_CSV, 'w', newline='') as f:
             writer = csv.writer(f)
-            writer.writerow(['timestamp', 'model', 'idea'])
+            writer.writerow(['timestamp', 'model', 'source', 'idea'])
 
 def load_existing_ideas():
     """Load existing ideas from CSV to check for duplicates"""
@@ -345,7 +399,118 @@ def clean_idea(idea):
     
     return idea
 
-def log_idea(idea, model_config):
+def discover_youtube_strategies(model_config):
+    """Discover trading strategies from YouTube videos"""
+    if not YOUTUBE_ENABLED:
+        return []
+
+    cprint("\n🎥 YOUTUBE STRATEGY DISCOVERY MODE ACTIVATED!", "white", "on_red")
+    cprint("🔍 Searching for crypto trading videos...", "cyan")
+    time.sleep(0.5)
+
+    yt = YouTubeUtils()
+    discovered_strategies = []
+
+    # Pick a random search query
+    query = random.choice(YOUTUBE_SEARCH_QUERIES)
+    cprint(f"🔎 Search query: '{query}'", "yellow", "on_blue")
+    time.sleep(0.5)
+
+    try:
+        # Search for videos
+        animate_loading(2, f"Searching YouTube", "🎥")
+        videos = yt.search_videos(query, max_results=YOUTUBE_VIDEOS_PER_SEARCH)
+
+        if not videos:
+            cprint("❌ No videos found", "red")
+            return []
+
+        cprint(f"✅ Found {len(videos)} videos!", "green")
+        time.sleep(0.5)
+
+        # Process each video
+        for i, video in enumerate(videos, 1):
+            cprint(f"\n📹 Video {i}/{len(videos)}: {video['title'][:60]}...", "white", "on_magenta")
+            cprint(f"   Channel: {video['channel']}", "cyan")
+            cprint(f"   URL: {video['url']}", "yellow")
+            time.sleep(0.5)
+
+            # Get transcript
+            cprint("📝 Extracting transcript...", "yellow")
+            animate_loading(2, "Getting transcript", "📜")
+
+            transcript = yt.get_transcript(video['video_id'])
+
+            if not transcript:
+                cprint("   ⚠️ No transcript available, skipping", "yellow")
+                continue
+
+            cprint(f"   ✅ Transcript extracted: {len(transcript)} characters", "green")
+            time.sleep(0.5)
+
+            # Extract strategy using AI
+            cprint("🧠 Analyzing transcript for strategies...", "cyan")
+            animate_loading(2, "AI analyzing", "🤖")
+
+            try:
+                model = model_factory.get_model(model_config["type"], model_config["name"])
+                if not model:
+                    cprint("   ❌ Could not initialize model", "red")
+                    continue
+
+                # Limit transcript to first 3000 chars to avoid token limits
+                transcript_snippet = transcript[:3000]
+
+                response = model.generate_response(
+                    system_prompt=YOUTUBE_STRATEGY_EXTRACTION_PROMPT,
+                    user_content=f"Video: {video['title']}\n\nTranscript:\n{transcript_snippet}",
+                    temperature=0.3  # Lower temperature for extraction
+                )
+
+                # Handle response
+                if isinstance(response, str):
+                    strategy = response
+                elif hasattr(response, 'content'):
+                    strategy = response.content
+                else:
+                    strategy = str(response)
+
+                strategy = clean_idea(strategy)
+
+                # Check if a valid strategy was found
+                if "no backtest-able strategy" in strategy.lower() or "no clear strategy" in strategy.lower():
+                    cprint("   ⚠️ No clear strategy found in this video", "yellow")
+                    continue
+
+                # Add source information
+                strategy_with_source = f"{strategy} (Source: {video['url']})"
+
+                cprint("   ✅ Strategy extracted!", "green")
+                cprint(f"   💡 {strategy[:100]}...", "yellow", "on_blue")
+
+                discovered_strategies.append({
+                    'strategy': strategy,
+                    'video_title': video['title'],
+                    'video_url': video['url'],
+                    'channel': video['channel']
+                })
+
+                time.sleep(0.5)
+
+            except Exception as e:
+                cprint(f"   ❌ Error extracting strategy: {str(e)}", "red")
+                continue
+
+        cprint(f"\n🎉 YouTube Discovery Complete!", "white", "on_green")
+        cprint(f"📊 Found {len(discovered_strategies)} strategies from {len(videos)} videos", "cyan")
+
+        return discovered_strategies
+
+    except Exception as e:
+        cprint(f"❌ YouTube discovery error: {str(e)}", "red")
+        return []
+
+def log_idea(idea, model_config, source="AI_GENERATED"):
     """Log a new idea to both CSV and ideas.txt"""
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     model_name = f"{model_config['type']}-{model_config['name']}"
@@ -364,7 +529,7 @@ def log_idea(idea, model_config):
     # Log to CSV
     with open(IDEAS_CSV, 'a', newline='') as f:
         writer = csv.writer(f)
-        writer.writerow([timestamp, model_name, idea])
+        writer.writerow([timestamp, model_name, source, idea])
     
     # Check if ideas.txt ends with a newline
     needs_newline = False
@@ -422,26 +587,52 @@ def run_idea_generation_loop(interval=10):
     time.sleep(1)  # Pause for readability
     
     try:
+        iteration = 0
         while True:
+            iteration += 1
+
             # Load existing ideas to check for duplicates
             existing_ideas = load_existing_ideas()
             cprint(f"📚 Loaded {len(existing_ideas)} existing ideas for duplicate checking", "white", "on_blue")
             time.sleep(1)  # Pause for readability
-            
-            # Select a random model
-            model_config = random.choice(MODELS)
-            
-            # Generate idea
-            idea = generate_idea(model_config)
-            
-            if idea:
-                # Check if it's a duplicate
-                if is_duplicate(idea, existing_ideas):
-                    cprint(f"🔄 DUPLICATE DETECTED!", "white", "on_red")
-                    cprint(f"Skipping: {idea}", "yellow")
-                else:
-                    # Log the new idea
-                    log_idea(idea, model_config)
+
+            # Decide whether to use AI generation or YouTube discovery
+            # Use YouTube discovery every 3rd iteration
+            use_youtube = YOUTUBE_ENABLED and (iteration % 3 == 0)
+
+            if use_youtube:
+                # YouTube Strategy Discovery Mode
+                model_config = random.choice(MODELS)
+                youtube_strategies = discover_youtube_strategies(model_config)
+
+                # Log all discovered strategies
+                for strategy_data in youtube_strategies:
+                    strategy = strategy_data['strategy']
+
+                    # Check if it's a duplicate
+                    if is_duplicate(strategy, existing_ideas):
+                        cprint(f"🔄 DUPLICATE DETECTED!", "white", "on_red")
+                        cprint(f"Skipping: {strategy[:100]}...", "yellow")
+                    else:
+                        # Log with YouTube source
+                        log_idea(strategy, model_config, source=f"YOUTUBE:{strategy_data['video_url']}")
+                        existing_ideas.add(strategy.lower())
+            else:
+                # Standard AI Generation Mode
+                # Select a random model
+                model_config = random.choice(MODELS)
+
+                # Generate idea
+                idea = generate_idea(model_config)
+
+                if idea:
+                    # Check if it's a duplicate
+                    if is_duplicate(idea, existing_ideas):
+                        cprint(f"🔄 DUPLICATE DETECTED!", "white", "on_red")
+                        cprint(f"Skipping: {idea}", "yellow")
+                    else:
+                        # Log the new idea
+                        log_idea(idea, model_config, source="AI_GENERATED")
             
             # Fun waiting animation - exactly 10 seconds
             cprint(f"\n⏱️ COOLDOWN PERIOD ACTIVATED", "white", "on_blue")
@@ -479,41 +670,63 @@ def run_idea_generation_loop(interval=10):
         import traceback
         cprint(traceback.format_exc(), "red")
 
-def test_run(num_ideas=1, interval=10):
+def test_run(num_ideas=1, interval=10, test_youtube=False):
     """Run a short test of the idea generation process"""
     setup_files()
-    
+
     # Fancy startup animation
     animate_moon_dev()
     time.sleep(0.5)  # Pause for readability
     cprint("\n🧪 MOON DEV'S RESEARCH AGENT - TEST MODE", "white", "on_magenta")
     time.sleep(0.5)  # Pause for readability
+
+    if test_youtube and YOUTUBE_ENABLED:
+        cprint("🎥 YOUTUBE DISCOVERY TEST ENABLED", "white", "on_red")
+
     cprint(f"🔄 Will generate {num_ideas} ideas with {interval} seconds interval", "cyan")
     time.sleep(1)  # Pause for readability
-    
+
     try:
         existing_ideas = load_existing_ideas()
         cprint(f"📚 Loaded {len(existing_ideas)} existing ideas for duplicate checking", "white", "on_blue")
         time.sleep(1)  # Pause for readability
-        
+
         ideas_generated = 0
         while ideas_generated < num_ideas:
             # Select a random model
             model_config = random.choice(MODELS)
-            
-            # Generate idea
-            idea = generate_idea(model_config)
-            
-            if idea:
-                # Check if it's a duplicate
-                if is_duplicate(idea, existing_ideas):
-                    cprint(f"🔄 DUPLICATE DETECTED!", "white", "on_red")
-                    cprint(f"Skipping: {idea}", "yellow")
-                else:
-                    # Log the new idea
-                    log_idea(idea, model_config)
-                    ideas_generated += 1
-                    existing_ideas.add(idea.lower())
+
+            if test_youtube and YOUTUBE_ENABLED:
+                # Test YouTube Discovery
+                youtube_strategies = discover_youtube_strategies(model_config)
+
+                for strategy_data in youtube_strategies:
+                    if ideas_generated >= num_ideas:
+                        break
+
+                    strategy = strategy_data['strategy']
+
+                    if is_duplicate(strategy, existing_ideas):
+                        cprint(f"🔄 DUPLICATE DETECTED!", "white", "on_red")
+                        cprint(f"Skipping: {strategy[:100]}...", "yellow")
+                    else:
+                        log_idea(strategy, model_config, source=f"YOUTUBE:{strategy_data['video_url']}")
+                        ideas_generated += 1
+                        existing_ideas.add(strategy.lower())
+            else:
+                # Standard AI Generation
+                idea = generate_idea(model_config)
+
+                if idea:
+                    # Check if it's a duplicate
+                    if is_duplicate(idea, existing_ideas):
+                        cprint(f"🔄 DUPLICATE DETECTED!", "white", "on_red")
+                        cprint(f"Skipping: {idea}", "yellow")
+                    else:
+                        # Log the new idea
+                        log_idea(idea, model_config, source="AI_GENERATED")
+                        ideas_generated += 1
+                        existing_ideas.add(idea.lower())
             
             if ideas_generated < num_ideas:
                 # Fun waiting animation - always 10 seconds

@@ -121,30 +121,15 @@ class YouTubeUtils:
                 cprint("❌ Invalid video ID or URL", "red")
                 return None
 
-            transcript_list = YouTubeTranscriptApi.list_transcripts(video_id)
+            # Use the new API method
+            api = YouTubeTranscriptApi()
+            transcript_data = api.fetch(video_id, languages=languages)
 
-            # Try to get transcript in preferred languages
-            for lang in languages:
-                try:
-                    transcript = transcript_list.find_transcript([lang])
-                    transcript_text = ' '.join([t['text'] for t in transcript.fetch()])
+            # Extract text from transcript data
+            transcript_text = ' '.join([entry['text'] for entry in transcript_data])
 
-                    cprint(f"✅ Transcript extracted: {len(transcript_text)} chars (language: {lang})", "green")
-                    return transcript_text
-                except:
-                    continue
-
-            # Fallback: try any generated transcript
-            try:
-                transcript = transcript_list.find_generated_transcript(languages)
-                transcript_text = ' '.join([t['text'] for t in transcript.fetch()])
-                cprint(f"✅ Auto-generated transcript extracted: {len(transcript_text)} chars", "green")
-                return transcript_text
-            except:
-                pass
-
-            cprint(f"❌ No transcript available in languages: {languages}", "red")
-            return None
+            cprint(f"✅ Transcript extracted: {len(transcript_text)} chars", "green")
+            return transcript_text
 
         except Exception as e:
             cprint(f"❌ Failed to get transcript: {e}", "red")
@@ -176,18 +161,12 @@ class YouTubeUtils:
             if not video_id:
                 return None
 
-            transcript_list = YouTubeTranscriptApi.list_transcripts(video_id)
+            # Use the new API method
+            api = YouTubeTranscriptApi()
+            segments = api.fetch(video_id, languages=languages)
 
-            for lang in languages:
-                try:
-                    transcript = transcript_list.find_transcript([lang])
-                    segments = transcript.fetch()
-                    cprint(f"✅ Transcript with timestamps extracted: {len(segments)} segments", "green")
-                    return segments
-                except:
-                    continue
-
-            return None
+            cprint(f"✅ Transcript with timestamps extracted: {len(segments)} segments", "green")
+            return segments
 
         except Exception as e:
             cprint(f"❌ Failed to get transcript with timestamps: {e}", "red")

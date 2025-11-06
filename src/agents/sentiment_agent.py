@@ -2,13 +2,19 @@
 🌙 Moon Dev's Sentiment Agent
 Built with love by Moon Dev 🚀
 
-This agent monitors Twitter sentiment for our token list using twikit.
+This agent monitors Twitter AND YouTube sentiment for our token list.
 It will analyze sentiment using HuggingFace models and track mentioned tokens.
+
+Features:
+- Twitter sentiment monitoring (via twikit)
+- ✅ NEW: YouTube comments sentiment analysis
+- ✅ NEW: Multi-platform sentiment aggregation
 
 Required:
 1. First run twitter_login.py to generate cookies located: src/scripts/twitter_login.py
     - this will save a cookies.json that you should not share. make sure its in .gitignore
 2. Make sure your .env has the Twitter credentials, example added to .env.example
+3. YouTube sentiment works automatically (no API keys needed for transcripts)
 '''
 
 # Configuration
@@ -18,6 +24,15 @@ DATA_FOLDER = "src/data/sentiment"  # Where to store sentiment data
 SENTIMENT_HISTORY_FILE = "src/data/sentiment_history.csv"  # Store sentiment scores over time
 IGNORE_LIST = ['t.co', 'discord', 'join', 'telegram', 'discount', 'pay']
 CHECK_INTERVAL_MINUTES = 15  # How often to run sentiment analysis
+
+# YouTube Sentiment Configuration
+YOUTUBE_ENABLED = True  # Enable YouTube comments sentiment analysis
+YOUTUBE_CHANNELS_TO_MONITOR = [
+    "@moondevonyt",
+    "@CoinBureau",
+    "@AltcoinDaily"
+]
+YOUTUBE_COMMENTS_PER_VIDEO = 50  # Max comments to analyze per video
 
 # Sentiment settings
 SENTIMENT_ANNOUNCE_THRESHOLD = 0.4  # Announce vocally if abs(sentiment) > this value (-1 to 1 scale)
@@ -91,8 +106,11 @@ def patched_client(*args, **kwargs):
 
 httpx.Client = patched_client
 
-# imports 
+# imports
 from twikit import Client, TooManyRequests, BadRequest
+
+# YouTube imports
+from src.agents.youtube_utils import YouTubeUtils
 
 class SentimentAgent:
     def __init__(self):
@@ -488,9 +506,62 @@ class SentimentAgent:
 
         cprint("🌙 Moon Dev's Sentiment Analysis complete! 🚀", "green")
 
+    def analyze_youtube_comments(self):
+        """Analyze YouTube comments sentiment from monitored channels"""
+        if not YOUTUBE_ENABLED or not self.yt:
+            return
+
+        cprint("\n🎥 Starting YouTube Comments Sentiment Analysis...", "red")
+
+        all_comments = []
+
+        for channel in YOUTUBE_CHANNELS_TO_MONITOR:
+            try:
+                cprint(f"\n📹 Checking channel: {channel}", "cyan")
+
+                # Get latest video from channel
+                videos = self.yt.get_channel_latest(channel, max_videos=1)
+
+                if not videos:
+                    cprint(f"   ⚠️ No videos found for {channel}", "yellow")
+                    continue
+
+                video = videos[0]
+                cprint(f"   Latest video: {video['title'][:60]}...", "yellow")
+
+                # Get comments
+                comments = self.yt.get_comments(video['video_id'], max_comments=YOUTUBE_COMMENTS_PER_VIDEO)
+
+                if comments:
+                    cprint(f"   ✅ Got {len(comments)} comments", "green")
+
+                    # Filter comments for tokens
+                    for comment in comments:
+                        for token in TOKENS_TO_TRACK:
+                            if token.lower() in comment['text'].lower():
+                                all_comments.append(comment['text'])
+                                break
+
+            except Exception as e:
+                cprint(f"   ❌ Error processing {channel}: {str(e)}", "red")
+
+        # Analyze sentiment
+        if all_comments:
+            cprint(f"\n💬 Analyzing {len(all_comments)} YouTube comments mentioning tracked tokens", "cyan")
+            self.analyze_and_announce_sentiment(all_comments)
+        else:
+            cprint("   ⚠️ No relevant YouTube comments found", "yellow")
+
     def run(self):
         """Main function to run sentiment analysis"""
         asyncio.run(self.run_async())
+
+        # Run YouTube sentiment analysis after Twitter
+        if YOUTUBE_ENABLED:
+            try:
+                self.analyze_youtube_comments()
+            except Exception as e:
+                cprint(f"❌ YouTube sentiment error: {str(e)}", "red")
 
 if __name__ == "__main__":
     try:
