@@ -35,52 +35,120 @@ Remember: Past performance doesn't guarantee future results!
 """
 
 
-## Previous presets (kept for easy switching) 👇
-# RESEARCH_CONFIG = {
-#     "type": "deepseek",
-#     "name": "deepseek-chat"  # Using DeepSeek Chat for research
-# }
-# 
-# BACKTEST_CONFIG = {
-#     "type": "deepseek", 
-#     "name": "deepseek-reasoner"  # Using DeepSeek Reasoner for backtesting
-# }
-# 
-# DEBUG_CONFIG = {
-#     "type": "deepseek",
-#     "name": "deepseek-chat"  # Using DeepSeek Chat for debugging
-# }
-# 
-# # DEBUG_CONFIG = {
-# #     "type": "ollama",
-# #     "name": "deepseek-r1"  # Using Ollama's DeepSeek-R1 for debugging
-# # }
-# 
-# PACKAGE_CONFIG = {
-#     "type": "deepseek",
-#     "name": "deepseek-chat"  # Using DeepSeek Chat for package optimization
-# }
+## ============================================================
+## 🎯 MODEL CONFIGURATION PRESETS
+## ============================================================
+## Choose your configuration below! Uncomment one section.
+## 🌙 Moon Dev's RBI AI supports multiple model providers!
 
-# New OpenAI presets using GPT-5 for all agents 🌙🚀
+## ============================================================
+## 🚀 PRESET 1: Local Qwen3-Coder (FREE, PRIVATE, FAST!)
+## ============================================================
+## Best for: Code generation, strategy backtesting, local development
+## Cost: FREE (runs locally)
+## Speed: FAST (no API latency)
+## Privacy: 100% LOCAL (no data sent to external APIs)
+## Requirements: Ollama running with qwen3-coder:30b pulled
+
 RESEARCH_CONFIG = {
-    "type": "openai",
-    "name": "gpt-5"
+    "type": "ollama",
+    "name": "qwen3-coder:30b"  # Excellent for analyzing trading strategies
 }
 
 BACKTEST_CONFIG = {
-    "type": "openai",
-    "name": "gpt-5"
+    "type": "ollama",
+    "name": "qwen3-coder:30b"  # Perfect for generating backtest code
 }
 
 DEBUG_CONFIG = {
-    "type": "openai",
-    "name": "gpt-5"
+    "type": "ollama",
+    "name": "qwen3-coder:30b"  # Great at fixing code issues
 }
 
 PACKAGE_CONFIG = {
-    "type": "openai",
-    "name": "gpt-5"
+    "type": "ollama",
+    "name": "qwen3-coder:30b"  # Reliable for import optimization
 }
+
+## ============================================================
+## 💎 PRESET 2: OpenAI GPT-5 (Most Powerful)
+## ============================================================
+## Best for: Complex reasoning, highest quality output
+## Cost: $$$ (API costs)
+## Speed: Moderate (API latency)
+
+# RESEARCH_CONFIG = {
+#     "type": "openai",
+#     "name": "gpt-5"
+# }
+
+# BACKTEST_CONFIG = {
+#     "type": "openai",
+#     "name": "gpt-5"
+# }
+
+# DEBUG_CONFIG = {
+#     "type": "openai",
+#     "name": "gpt-5"
+# }
+
+# PACKAGE_CONFIG = {
+#     "type": "openai",
+#     "name": "gpt-5"
+# }
+
+## ============================================================
+## 🧠 PRESET 3: DeepSeek (Reasoning Specialist)
+## ============================================================
+## Best for: Complex strategy analysis with reasoning traces
+## Cost: $ (cheap API)
+## Speed: Moderate
+
+# RESEARCH_CONFIG = {
+#     "type": "deepseek",
+#     "name": "deepseek-chat"
+# }
+#
+# BACKTEST_CONFIG = {
+#     "type": "deepseek",
+#     "name": "deepseek-reasoner"
+# }
+#
+# DEBUG_CONFIG = {
+#     "type": "deepseek",
+#     "name": "deepseek-chat"
+# }
+#
+# PACKAGE_CONFIG = {
+#     "type": "deepseek",
+#     "name": "deepseek-chat"
+# }
+
+## ============================================================
+## 🎨 PRESET 4: Mixed Models (Best of All Worlds)
+## ============================================================
+## Best for: Optimizing cost/performance per task
+## Use expensive models only where needed!
+
+# RESEARCH_CONFIG = {
+#     "type": "ollama",
+#     "name": "qwen3-coder:30b"  # Local for research
+# }
+#
+# BACKTEST_CONFIG = {
+#     "type": "openai",
+#     "name": "gpt-5"  # Premium for critical code generation
+# }
+#
+# DEBUG_CONFIG = {
+#     "type": "ollama",
+#     "name": "qwen3-coder:30b"  # Local for debugging
+# }
+#
+# PACKAGE_CONFIG = {
+#     "type": "ollama",
+#     "name": "qwen3-coder:30b"  # Local for package optimization
+# }
 
 
 

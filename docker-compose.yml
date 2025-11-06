@@ -1,0 +1,72 @@
+version: '3.8'
+
+services:
+  # Ollama service - runs qwen3-coder:30b locally
+  ollama:
+    image: ollama/ollama:latest
+    container_name: moondev-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    networks:
+      - moondev-network
+    restart: unless-stopped
+    environment:
+      - OLLAMA_HOST=0.0.0.0
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # Moon Dev AI Agents - trading system
+  trading-agents:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: moondev-agents
+    depends_on:
+      ollama:
+        condition: service_healthy
+    volumes:
+      - ./src:/app/src
+      - ./data:/app/data
+      - ./.env:/app/.env:ro
+    networks:
+      - moondev-network
+    restart: unless-stopped
+    environment:
+      - OLLAMA_BASE_URL=http://ollama:11434
+      - PYTHONUNBUFFERED=1
+    command: python src/main.py
+
+  # RBI Agent - for backtesting strategy generation
+  rbi-agent:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: moondev-rbi
+    depends_on:
+      ollama:
+        condition: service_healthy
+    volumes:
+      - ./src:/app/src
+      - ./data:/app/data
+      - ./.env:/app/.env:ro
+    networks:
+      - moondev-network
+    environment:
+      - OLLAMA_BASE_URL=http://ollama:11434
+      - PYTHONUNBUFFERED=1
+    profiles:
+      - rbi  # Only start with: docker-compose --profile rbi up
+
+networks:
+  moondev-network:
+    driver: bridge
+
+volumes:
+  ollama_data:
+    driver: local
