@@ -505,6 +505,7 @@ def main():
     parser.add_argument('--live', action='store_true', help='Use live trading (default: paper)')
     parser.add_argument('--balance', type=float, default=10000, help='Starting balance for paper trading')
     parser.add_argument('--interval', type=int, default=15, help='Minutes between cycles (default: 15)')
+    parser.add_argument('--max-positions', type=int, default=None, help='Override max concurrent positions (default: based on account size)')
 
     args = parser.parse_args()
 
@@ -523,6 +524,11 @@ def main():
         paper_trading=paper_trading,
         virtual_balance=args.balance
     )
+
+    # Override max positions if specified
+    if args.max_positions is not None:
+        agent.max_positions = args.max_positions
+        cprint(f"\n⚙️  Overriding max positions: {args.max_positions}", "yellow")
 
     agent.run_trading_loop(interval_minutes=args.interval)
 
