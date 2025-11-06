@@ -86,12 +86,13 @@ AI_MODEL = "claude-3-haiku-20240307"  # Model Options:
 AI_MAX_TOKENS = 1024  # Max tokens for response
 AI_TEMPERATURE = 0.7  # Creativity vs precision (0-1)
 
-# AI Model Fallback Configuration (for MT5 and other agents)
-AI_USE_FALLBACK = True  # Enable fallback to local model
-AI_PRIMARY_TYPE = 'openrouter'  # Primary AI provider: openrouter, openai, claude, groq, xai, deepseek
-AI_PRIMARY_MODEL = 'anthropic/claude-3.5-sonnet'  # OpenRouter model name
-AI_FALLBACK_TYPE = 'ollama'  # Fallback provider (usually ollama for local)
-AI_FALLBACK_MODEL = 'llama3.2'  # Ollama model name
+# AI Model Configuration (for MT5 and other agents)
+# Using Ollama for FREE local AI - no API keys needed!
+AI_USE_FALLBACK = False  # Disable fallback - using Ollama directly
+AI_PRIMARY_TYPE = 'ollama'  # Primary AI provider: ollama (local, free!)
+AI_PRIMARY_MODEL = 'qwen3-vl'  # Ollama model: qwen3-vl (vision & language)
+AI_FALLBACK_TYPE = 'ollama'  # Fallback provider (same as primary)
+AI_FALLBACK_MODEL = 'qwen3-vl'  # Same model
 
 # Trading Strategy Agent Settings - MAY NOT BE USED YET 1/5/25
 ENABLE_STRATEGIES = True  # Set this to True to use strategies
