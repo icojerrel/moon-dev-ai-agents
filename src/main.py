@@ -25,6 +25,16 @@ from src.agents.sentiment_agent import SentimentAgent
 # Load environment variables
 load_dotenv()
 
+def update_health_file():
+    """Update health file with current timestamp for Docker health checks"""
+    try:
+        health_file = os.path.join(project_root, '.health')
+        with open(health_file, 'w') as f:
+            f.write(f"{datetime.now().isoformat()}\n")
+    except Exception as e:
+        # Don't fail the application if health file can't be written
+        pass
+
 # Agent Configuration
 ACTIVE_AGENTS = {
     'risk': False,      # Risk management agent
@@ -49,6 +59,9 @@ def run_agents():
 
         while True:
             try:
+                # Update health file at start of each cycle
+                update_health_file()
+
                 # Run Risk Management
                 if risk_agent:
                     cprint("\n🛡️ Running Risk Management...", "cyan")
@@ -100,5 +113,8 @@ if __name__ == "__main__":
         status = "✅ ON" if active else "❌ OFF"
         cprint(f"  • {agent.title()}: {status}", "white", "on_blue")
     print("\n")
+
+    # Initialize health file on startup
+    update_health_file()
 
     run_agents()

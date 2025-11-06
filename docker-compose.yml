@@ -1,0 +1,66 @@
+version: '3.8'
+
+services:
+  moon-dev-agents:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: moon-dev-ai-agents
+    restart: unless-stopped
+
+    # Environment variables (override with .env file)
+    env_file:
+      - .env
+
+    # Volume mounts for persistent data
+    volumes:
+      # Persist agent data and outputs
+      - ./src/data:/app/src/data
+      # Persist logs
+      - ./logs:/app/logs
+      # Optional: mount config for live updates
+      # - ./src/config.py:/app/src/config.py:ro
+
+    # Resource limits (adjust based on your system)
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 8G
+        reservations:
+          cpus: '2'
+          memory: 4G
+
+    # Health check configuration
+    healthcheck:
+      test: ["CMD", "python", "/app/healthcheck.py"]
+      interval: 5m
+      timeout: 30s
+      start_period: 1m
+      retries: 3
+
+    # Logging configuration
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+    # Network mode (use host if needed for certain APIs)
+    # network_mode: host
+
+# Optional: Add additional services (e.g., monitoring, database)
+# Uncomment and configure as needed:
+
+# prometheus:
+#   image: prom/prometheus:latest
+#   container_name: prometheus
+#   restart: unless-stopped
+#   volumes:
+#     - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+#     - prometheus_data:/prometheus
+#   ports:
+#     - "9090:9090"
+
+# volumes:
+#   prometheus_data:
