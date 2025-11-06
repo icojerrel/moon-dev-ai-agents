@@ -43,8 +43,11 @@ echo # ============================================================
 echo # AI Model API Keys ^(Fill in at least ONE^)
 echo # ============================================================
 echo.
-echo # xAI Grok ^(Recommended - fast and cheap^)
-echo GROK_API_KEY=xai-your_key_here
+echo # OpenRouter ^(RECOMMENDED - One API for all models^)
+echo OPENROUTER_API_KEY=sk-or-v1-your_key_here
+echo.
+echo # xAI Grok ^(Fast and cheap^)
+echo # GROK_API_KEY=xai-your_key_here
 echo.
 echo # Groq ^(Free tier available^)
 echo # GROQ_API_KEY=gsk_your_key_here

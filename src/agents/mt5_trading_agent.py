@@ -22,6 +22,7 @@ sys.path.append(project_root)
 # Import MT5 utils
 from src.agents.mt5_utils import get_mt5_connection, MT5_AVAILABLE
 from src.models.model_factory import ModelFactory
+from src.models.fallback_model import create_openrouter_ollama_fallback
 
 # Import config
 from src.config import (
@@ -30,11 +31,9 @@ from src.config import (
     MT5_USE_STOP_LOSS, MT5_STOP_LOSS_POINTS,
     MT5_USE_TAKE_PROFIT, MT5_TAKE_PROFIT_POINTS,
     AI_MODEL, AI_MAX_TOKENS, AI_TEMPERATURE,
+    AI_USE_FALLBACK, AI_PRIMARY_TYPE, AI_PRIMARY_MODEL,
+    AI_FALLBACK_TYPE, AI_FALLBACK_MODEL,
 )
-
-# AI Model Configuration
-AI_MODEL_TYPE = 'xai'  # groq, openai, claude, deepseek, xai, ollama
-AI_MODEL_NAME = None   # None = use default
 
 # Trading prompt for AI
 MT5_TRADING_PROMPT = """
@@ -94,16 +93,46 @@ class MT5TradingAgent:
         return self.mt5.connect()
 
     def initialize_model(self):
-        """Initialize AI model"""
+        """Initialize AI model with fallback support"""
         try:
-            self.model = ModelFactory.create_model(
-                model_type=AI_MODEL_TYPE,
-                model_name=AI_MODEL_NAME
-            )
-            cprint(f"✅ AI Model initialized: {AI_MODEL_TYPE}", "green")
+            if AI_USE_FALLBACK and AI_PRIMARY_TYPE == 'openrouter':
+                # Use OpenRouter → Ollama fallback
+                cprint("\n🔄 Initializing OpenRouter with Ollama fallback...", "cyan")
+
+                openrouter_key = os.getenv('OPENROUTER_API_KEY')
+                if not openrouter_key:
+                    cprint("⚠️ OPENROUTER_API_KEY not found, trying direct model init", "yellow")
+                    raise ValueError("Missing OPENROUTER_API_KEY")
+
+                self.model = create_openrouter_ollama_fallback(
+                    openrouter_api_key=openrouter_key,
+                    openrouter_model=AI_PRIMARY_MODEL,
+                    ollama_model=AI_FALLBACK_MODEL
+                )
+                cprint(f"✅ Fallback Model initialized: {AI_PRIMARY_TYPE} → {AI_FALLBACK_TYPE}", "green")
+
+            else:
+                # Use single model (backwards compatible)
+                self.model = ModelFactory.create_model(
+                    model_type=AI_PRIMARY_TYPE,
+                    model_name=AI_PRIMARY_MODEL
+                )
+                cprint(f"✅ AI Model initialized: {AI_PRIMARY_TYPE}", "green")
+
         except Exception as e:
-            cprint(f"❌ Failed to initialize AI model: {str(e)}", "red")
-            raise
+            cprint(f"⚠️ Fallback initialization failed: {str(e)}", "yellow")
+            cprint("🔄 Trying fallback model directly...", "cyan")
+
+            try:
+                # Last resort: try Ollama directly
+                self.model = ModelFactory.create_model(
+                    model_type=AI_FALLBACK_TYPE,
+                    model_name=AI_FALLBACK_MODEL
+                )
+                cprint(f"✅ Fallback model initialized: {AI_FALLBACK_TYPE}", "green")
+            except Exception as fallback_error:
+                cprint(f"❌ Failed to initialize any AI model: {str(fallback_error)}", "red")
+                raise
 
     def get_technical_indicators(self, df: pd.DataFrame) -> Dict:
         """Calculate technical indicators"""
