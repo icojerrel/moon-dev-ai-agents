@@ -27,6 +27,7 @@ sys.path.insert(0, str(project_root))
 
 from src.mt5.mt5_connection import MT5Connection
 from src.mt5.smc_indicators import SMCIndicators
+from src.mt5.position_sizer import PositionSizer
 from src.models.model_factory import ModelFactory
 
 
@@ -62,9 +63,13 @@ class MT5TradingAgentSMC:
         self.model = self.factory.get_model("ollama")
         cprint(f"✅ AI Model loaded: {self.model.model_name}\n", "green")
 
-        # Trading parameters (SMC-optimized)
-        self.max_positions = 3
-        self.risk_per_trade = 0.01  # 1% risk (more conservative with SMC)
+        # Get risk parameters based on account size
+        risk_params = PositionSizer.get_risk_params(virtual_balance)
+
+        # Trading parameters (optimized for account size)
+        self.max_positions = risk_params['max_positions']
+        self.risk_per_trade = risk_params['risk_per_trade']
+        self.min_confidence = risk_params['min_confidence']
         self.symbols = ["EURUSD", "GBPUSD", "USDJPY"]
 
         # SMC-specific settings
@@ -74,6 +79,15 @@ class MT5TradingAgentSMC:
         # State
         self.running = False
         self.trade_log = []
+
+        # Log risk parameters
+        cprint(f"💼 Account Size: ${virtual_balance:,.2f}", "cyan")
+        cprint(f"📊 Risk Parameters:", "cyan")
+        cprint(f"  Risk per trade: {risk_params['risk_per_trade']*100}%", "white")
+        cprint(f"  Max positions: {risk_params['max_positions']}", "white")
+        cprint(f"  Max daily loss: {risk_params['max_daily_loss']*100}%", "white")
+        cprint(f"  Take profit target: {risk_params['take_profit_r']}R", "white")
+        cprint(f"  Min confidence: {risk_params['min_confidence']}%\n", "white")
 
     def connect_mt5(self) -> bool:
         """Connect to MT5"""
@@ -110,7 +124,7 @@ class MT5TradingAgentSMC:
         cprint(smc_summary, "white")
 
         # Enhanced AI prompt with SMC context
-        system_prompt = """You are a professional Smart Money Concepts (SMC) trader.
+        system_prompt = f"""You are a professional Smart Money Concepts (SMC) trader.
 
 Analyze the market using SMC principles:
 1. IFVG (Imbalance Fair Value Gaps) - Price inefficiencies that get filled
@@ -135,7 +149,7 @@ TAKE_PROFIT: [Price level or NONE]
 SMC_CONFLUENCES: [List key confluences, e.g., "Bullish IFVG + Uptrend structure"]
 
 Only recommend BUY/SELL if:
-- Confidence > 75%
+- Confidence > {self.min_confidence}%
 - At least 2 SMC confluences present
 - Trade is WITH market structure"""
 
@@ -246,8 +260,8 @@ Provide SMC-based trading decision with reasoning:"""
         confidence = analysis['confidence']
 
         # SMC requirements: Higher confidence threshold
-        if decision == 'HOLD' or confidence < 75:
-            cprint(f"⏸️  {decision} - Confidence too low ({confidence}%, need 75%)", "yellow")
+        if decision == 'HOLD' or confidence < self.min_confidence:
+            cprint(f"⏸️  {decision} - Confidence too low ({confidence}%, need {self.min_confidence}%)", "yellow")
             return False
 
         # Check SMC confluences
@@ -261,9 +275,8 @@ Provide SMC-based trading decision with reasoning:"""
             cprint(f"⏸️  Max positions reached ({self.max_positions})", "yellow")
             return False
 
-        # Calculate position size (conservative with SMC)
+        # Calculate position size based on account balance and risk
         account = self.mt5.get_account_info()
-        risk_amount = account['balance'] * self.risk_per_trade
 
         # Get current price
         prices = self.mt5.get_price(symbol)
@@ -274,8 +287,35 @@ Provide SMC-based trading decision with reasoning:"""
         bid, ask = prices
         entry_price = ask if decision == "BUY" else bid
 
-        # Position sizing: micro lot for SMC testing
-        lot_size = 0.01
+        # Calculate stop loss distance in pips
+        if not analysis['stop_loss']:
+            cprint("⚠️  No stop loss provided by AI, using default 30 pips", "yellow")
+            stop_loss_pips = 30.0
+        else:
+            stop_loss_pips = PositionSizer.calculate_stop_loss_pips(
+                entry_price,
+                analysis['stop_loss'],
+                symbol
+            )
+
+        # Calculate optimal lot size based on risk
+        lot_size = PositionSizer.calculate_lot_size(
+            account['balance'],
+            self.risk_per_trade,
+            stop_loss_pips,
+            symbol
+        )
+
+        # Get lot limits for this account size
+        min_lot, max_lot = PositionSizer.get_lot_limits(account['balance'])
+
+        cprint(f"\n💼 Position Sizing:", "cyan")
+        cprint(f"  Account Balance: ${account['balance']:,.2f}", "white")
+        cprint(f"  Risk per Trade: {self.risk_per_trade*100}%", "white")
+        cprint(f"  Risk Amount: ${account['balance'] * self.risk_per_trade:,.2f}", "white")
+        cprint(f"  Stop Loss Distance: {stop_loss_pips:.1f} pips", "white")
+        cprint(f"  Calculated Lot Size: {lot_size}", "green", attrs=["bold"])
+        cprint(f"  Lot Range: {min_lot} - {max_lot}", "white")
 
         cprint(f"\n{'='*70}", "green", attrs=["bold"])
         cprint(f"🎯 SMC TRADE SIGNAL", "green", attrs=["bold"])
@@ -333,22 +373,30 @@ Provide SMC-based trading decision with reasoning:"""
 
         cprint(f"\n📊 Managing {len(positions)} position(s)...", "cyan")
 
+        # Get risk parameters for account
+        account = self.mt5.get_account_info()
+        risk_params = PositionSizer.get_risk_params(account['balance'])
+
+        # Calculate dynamic targets based on account size
+        risk_per_trade = account['balance'] * risk_params['risk_per_trade']
+        take_profit_target = risk_per_trade * risk_params['take_profit_r']  # 3R for $150k
+        stop_loss_limit = risk_per_trade * risk_params['stop_loss_r']  # 1R
+
         for pos in positions:
             cprint(f"\n  Position {pos['ticket']}:", "yellow")
             cprint(f"    Symbol: {pos['symbol']}", "white")
             cprint(f"    Type: {pos['type']}", "white")
             cprint(f"    Entry: {pos['entry_price']:.5f}", "white")
             cprint(f"    P/L: ${pos['profit']:,.2f}", "green" if pos['profit'] > 0 else "red")
+            cprint(f"    Target: ${take_profit_target:,.2f} | Stop: ${-stop_loss_limit:,.2f}", "cyan")
 
-            # SMC-based exit logic: Wider targets, respect structure
-            # Take profit if hit 2R (risk-reward ratio)
-            if pos['profit'] > 100:
-                cprint("  ✅ Taking profit at 2R!", "green")
+            # SMC-based exit logic: Dynamic targets based on account size
+            if pos['profit'] >= take_profit_target:
+                cprint(f"  ✅ Taking profit at {risk_params['take_profit_r']}R!", "green")
                 self.mt5.close_position(pos['ticket'])
 
-            # Stop loss if hit 1R
-            elif pos['profit'] < -50:
-                cprint("  🛑 Stop loss hit!", "red")
+            elif pos['profit'] <= -stop_loss_limit:
+                cprint(f"  🛑 Stop loss hit at {risk_params['stop_loss_r']}R!", "red")
                 self.mt5.close_position(pos['ticket'])
 
     def run_trading_loop(self, interval_minutes: int = 15):
@@ -409,7 +457,7 @@ Provide SMC-based trading decision with reasoning:"""
                         cprint(f"  SMC Confluences: {analysis.get('smc_confluences', 'None')}", "cyan")
 
                         # Execute if SMC conditions met
-                        if analysis['decision'] in ['BUY', 'SELL'] and analysis['confidence'] >= 75:
+                        if analysis['decision'] in ['BUY', 'SELL'] and analysis['confidence'] >= self.min_confidence:
                             self.execute_trade(symbol, analysis)
 
                     except Exception as e:
