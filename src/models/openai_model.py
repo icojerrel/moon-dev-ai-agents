@@ -3,6 +3,7 @@
 Built with love by Moon Dev 🚀
 """
 
+import os
 from openai import OpenAI
 import requests
 from termcolor import cprint
@@ -76,7 +77,13 @@ class OpenAIModel(BaseModel):
     def initialize_client(self, **kwargs) -> None:
         """Initialize the OpenAI client"""
         try:
-            self.client = OpenAI(api_key=self.api_key)
+            # Support custom base_url for OpenRouter and other OpenAI-compatible APIs
+            base_url = os.getenv("OPENAI_BASE_URL")
+            if base_url:
+                cprint(f"🔗 Using custom OpenAI base URL: {base_url}", "cyan")
+                self.client = OpenAI(api_key=self.api_key, base_url=base_url)
+            else:
+                self.client = OpenAI(api_key=self.api_key)
             cprint(f"✨ Moon Dev's magic initialized OpenAI model: {self.model_name} 🌟", "green")
             if self._supports_reasoning_effort():
                 cprint(f"🧠 Reasoning effort set to: {self.reasoning_effort}", "cyan")

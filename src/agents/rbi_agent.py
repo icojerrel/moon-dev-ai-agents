@@ -51,23 +51,23 @@ Remember: Past performance doesn't guarantee future results!
 ## Requirements: Ollama running with qwen3-coder:30b pulled
 
 RESEARCH_CONFIG = {
-    "type": "ollama",
-    "name": "qwen3-coder:30b"  # Excellent for analyzing trading strategies
+    "type": "openai",
+    "name": "qwen/qwen-2.5-coder-32b-instruct"  # OpenRouter: Excellent for analyzing trading strategies
 }
 
 BACKTEST_CONFIG = {
-    "type": "ollama",
-    "name": "qwen3-coder:30b"  # Perfect for generating backtest code
+    "type": "openai",
+    "name": "qwen/qwen-2.5-coder-32b-instruct"  # OpenRouter: Perfect for generating backtest code
 }
 
 DEBUG_CONFIG = {
-    "type": "ollama",
-    "name": "qwen3-coder:30b"  # Great at fixing code issues
+    "type": "openai",
+    "name": "qwen/qwen-2.5-coder-32b-instruct"  # OpenRouter: Great at fixing code issues
 }
 
 PACKAGE_CONFIG = {
-    "type": "ollama",
-    "name": "qwen3-coder:30b"  # Reliable for import optimization
+    "type": "openai",
+    "name": "qwen/qwen-2.5-coder-32b-instruct"  # OpenRouter: Reliable for import optimization
 }
 
 ## ============================================================

@@ -1,0 +1,30 @@
+Trade volatility contractions using Bollinger Band width percentile below 10% combined with ADX below 20, entering on breakout candle closes with 2x average volume and exiting at opposite band touch.
+Trade volatility compression breakouts using a confluence of narrowing Bollinger Bands width percentile (10-day) and suppressed Chaikin Money Flow, entering on volume-confirmed price exits beyond the bands with trailing stops based on Renko brick reversals.
+A breakout strategy that triggers when price crosses both a 20-period Donchian Channel and a 3x average true range threshold, with exits based on parabolic SAR reversals.
+
+# === NQStats.com Strategies - Based on 10-20 Year Historical Data (2004-2025) ===
+
+# Strategy 1: 9AM Hour Continuation (Highest Probability Edge)
+NQ 9am Hour Continuation Strategy: Trade in direction of 9am hour close (9:30am-10:30am EST). If 9am hour closes green, go long with 67% probability entire session closes green and 70% probability NY session (4pm > 9:30am) closes green. Exit at 4pm or when price breaks below 9:30am open. Use 20-minute segments within hour for entry timing: first segment (0-20min) highest retracement probability (89%), avoid entries in middle segment. Stop loss at 9am low for longs, 9am high for shorts.
+
+# Strategy 2: RTH Break Directional Bias
+NQ RTH Break Strategy: Compare current RTH open (9:30am EST) with previous day RTH range (pRTH: 9:30am-4pm). If RTH opens OUTSIDE pRTH range, trade in that direction with 83.29% probability price will NOT break opposite side of pRTH. If RTH opens INSIDE pRTH, expect breakout with 72.66% probability of breaking at least one side. Enter on confirmation after first 5-minute bar, stop loss at pRTH boundary on opposite side. Target: 1.5x pRTH range extension.
+
+# Strategy 3: Initial Balance Break with Direction Filter
+NQ Initial Balance Strategy: Define IB as high/low between 9:30am-10:30am EST. 96% probability IB breaks before 4pm, 83% before 12pm. Direction prediction: if IB closes in upper half (above 50% of range), trade IB high break with 81% probability. If IB closes lower half, trade IB low break with 74% probability. Enter on break + retest of IB boundary. Stop loss: opposite IB extreme. Take profit: 2x IB range from break point.
+
+# Strategy 4: SDEV Mean Reversion Pivots
+NQ Standard Deviation Reversion Strategy: Calculate daily session ±1.0 SDEV from 9:30am open (±1.376% of session open price). 68.27% probability session closes within ±1.0 SDEV range. When price extends beyond +1.0 SDEV without pivot/consolidation, fade the move expecting reversion to mean (session open). Entry: price touches +1.5 SDEV level with reversal candlestick pattern. Target: reversion to +0.5 SDEV or session open. Stop: beyond +2.0 SDEV. Apply to 1-hour timeframe for intraday: ±0.5 SDEV = 38.30% containment, use for scalping pivots.
+
+# Strategy 5: Morning Judas Continuation (Myth-Buster)
+NQ Morning Continuation Strategy: Measure 9:30am and 9:40am levels. If 9:40am > 9:30am (up bias), expect continuation to 10am with 64% probability (NOT reversal). Trade in direction of 9:40am move. For down bias (9:40am < 9:30am), 70% probability of continuation below 9:40am by 10am. Extension to 12pm: up bias shows 68% continuation above 10am, down bias 59% continuation below 10am. Enter on pullback to 9:40am level after initial move, stop below/above 9:30am level. Target: previous day high/low or SDEV levels.
+
+# Strategy 6: Noon Curve AM/PM Structure
+NQ Noon Curve Strategy: Track synthetic 8am-4pm candle with 12pm midpoint. 74.3% probability high and low form on OPPOSITE sides of 12pm. If AM side (8am-12pm) sets the low, expect PM side (12pm-4pm) to set the high. Track quarterly confluence: Q1 (8am-10am) sets AM high/low 66-68% of time. If Q1 low broken in Q2 (10am-12pm), expect new PM low. Enter PM trades after 12pm in expected direction based on AM structure. Stop: AM extreme. Target: equal distance from 8am open as AM extreme, or opposite SDEV level.
+
+# Strategy 7: Hour Stats Sweep Retracement
+NQ Hourly Sweep Strategy: For each hour during NY session, if current hour opens inside previous hour range and sweeps previous hour high/low, trade retracement back to current hour open. Highest probability in first 20-minute segment (up to 89% probability). Avoid second segment (20-40min, only 47% probability). Entry: after sweep of previous hour high/low, enter on first pullback within first 20 minutes. Target: current hour open. Stop: beyond previous hour extreme + 10 points. Special rule: avoid 9am hour due to volatility making first 20min high/low unreliable.
+
+# Strategy 8: ALN London Engulfment Bias
+NQ Overnight Session Strategy: Compare Asian (8pm-2am), London (2am-8am), and NY (8am-4pm) sessions. When London engulfs Asia (most common, ~93% of days), trade NY with 98% probability of breaking at least one London boundary. Direction: if NY takes London high first, only 44% probability of taking London low (fade double-sided break). If NY takes London low first, only 45% taking London high. Enter on first break of London range after 8am, avoid counter-trend trades. Stop: opposite London extreme. Target: 1.5x London range extension or previous day RTH extreme.
+
