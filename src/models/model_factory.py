@@ -14,10 +14,11 @@ from .base_model import BaseModel
 from .claude_model import ClaudeModel
 from .groq_model import GroqModel
 from .openai_model import OpenAIModel
-# from .gemini_model import GeminiModel  # Temporarily disabled due to protobuf conflict
+# from .gemini_model import GeminiModel  # Disabled - missing dependency
 from .deepseek_model import DeepSeekModel
 from .ollama_model import OllamaModel
 from .xai_model import XAIModel
+from .openrouter_model import OpenRouterModel
 import random
 
 class ModelFactory:
@@ -25,10 +26,11 @@ class ModelFactory:
     
     # Map model types to their implementations
     MODEL_IMPLEMENTATIONS = {
+        "openrouter": OpenRouterModel,  # OpenRouter - unified access to ALL models
         "claude": ClaudeModel,
         "groq": GroqModel,
         "openai": OpenAIModel,
-        # "gemini": GeminiModel,  # Temporarily disabled due to protobuf conflict
+        # "gemini": GeminiModel,  # Disabled - missing dependency
         "deepseek": DeepSeekModel,
         "ollama": OllamaModel,  # Add Ollama implementation
         "xai": XAIModel  # xAI Grok models
@@ -36,12 +38,13 @@ class ModelFactory:
     
     # Default models for each type
     DEFAULT_MODELS = {
+        "openrouter": "google/gemini-2.5-flash",  # OpenRouter default - cheap & fast
         "claude": "claude-3-5-haiku-latest",  # Latest fast Claude model
         "groq": "mixtral-8x7b-32768",        # Fast Mixtral model
         "openai": "gpt-4o",                  # Latest GPT-4 Optimized
-        # "gemini": "gemini-2.0-flash",        # Latest Gemini model (temporarily disabled)
+        "gemini": "gemini-2.5-flash",        # Latest Gemini model
         "deepseek": "deepseek-reasoner",     # Enhanced reasoning model
-        "ollama": "qwen3-coder:30b",         # Qwen3 Coder 30B - excellent for code generation
+        "ollama": "llama3.2",                # Meta's Llama 3.2 - balanced performance
         "xai": "grok-4-fast-reasoning"       # xAI's Grok 4 Fast with reasoning (best value: 2M context, cheap!)
     }
     
@@ -67,7 +70,7 @@ class ModelFactory:
         
         # Debug current environment without exposing values
         cprint("\n🔍 Environment Check:", "cyan")
-        for key in ["GROQ_API_KEY", "OPENAI_KEY", "ANTHROPIC_KEY", "DEEPSEEK_KEY", "GROK_API_KEY"]:  # GEMINI_KEY temporarily removed
+        for key in ["OPENROUTER_API_KEY", "GROQ_API_KEY", "OPENAI_KEY", "ANTHROPIC_KEY", "GEMINI_KEY", "DEEPSEEK_KEY", "GROK_API_KEY"]:
             value = os.getenv(key)
             if value and len(value.strip()) > 0:
                 cprint(f"  ├─ {key}: Found ({len(value)} chars)", "green")
@@ -208,10 +211,11 @@ class ModelFactory:
     def _get_api_key_mapping(self) -> Dict[str, str]:
         """Get mapping of model types to their API key environment variable names"""
         return {
+            "openrouter": "OPENROUTER_API_KEY",  # OpenRouter - unified access to all models
             "claude": "ANTHROPIC_KEY",
             "groq": "GROQ_API_KEY",
             "openai": "OPENAI_KEY",
-            # "gemini": "GEMINI_KEY",  # Temporarily disabled due to protobuf conflict
+            "gemini": "GEMINI_KEY",
             "deepseek": "DEEPSEEK_KEY",
             "xai": "GROK_API_KEY",  # Grok/xAI uses GROK_API_KEY
             # Ollama doesn't need an API key as it runs locally
