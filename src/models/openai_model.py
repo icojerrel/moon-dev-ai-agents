@@ -81,7 +81,20 @@ class OpenAIModel(BaseModel):
             base_url = os.getenv("OPENAI_BASE_URL")
             if base_url:
                 cprint(f"🔗 Using custom OpenAI base URL: {base_url}", "cyan")
-                self.client = OpenAI(api_key=self.api_key, base_url=base_url)
+                # OpenRouter requires specific headers
+                if "openrouter.ai" in base_url:
+                    cprint("🌐 Detected OpenRouter - adding required headers", "cyan")
+                    default_headers = {
+                        "HTTP-Referer": "https://github.com/moon-dev-ai/trading-agents",
+                        "X-Title": "Moon Dev AI Trading System"
+                    }
+                    self.client = OpenAI(
+                        api_key=self.api_key,
+                        base_url=base_url,
+                        default_headers=default_headers
+                    )
+                else:
+                    self.client = OpenAI(api_key=self.api_key, base_url=base_url)
             else:
                 self.client = OpenAI(api_key=self.api_key)
             cprint(f"✨ Moon Dev's magic initialized OpenAI model: {self.model_name} 🌟", "green")

@@ -1,0 +1,2 @@
+# Single NQStats strategy test
+NQ 9am Hour Continuation Strategy: Trade in direction of 9am hour close (9:30am-10:30am EST). If 9am hour closes green, go long with 67% probability entire session closes green and 70% probability NY session (4pm > 9:30am) closes green. Exit at 4pm or when price breaks below 9:30am open. Use 20-minute segments within hour for entry timing: first segment (0-20min) highest retracement probability (89%), avoid entries in middle segment. Stop loss at 9am low for longs, 9am high for shorts.
