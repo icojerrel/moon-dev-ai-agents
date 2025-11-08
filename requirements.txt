@@ -39,3 +39,9 @@ ta-lib>=0.4.0
 PyPDF2>=3.0.0
 youtube-transcript-api>=0.6.2
 pandas-ta>=0.3.14b0
+
+# MetaTrader 5 Integration
+MetaTrader5>=5.0.45
+
+# Production Utilities
+psutil>=5.9.0  # System monitoring

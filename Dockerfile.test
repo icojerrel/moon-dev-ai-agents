@@ -1,0 +1,42 @@
+# 🌙 Moon Dev's 24-Hour Trading Test Docker Image
+# Optimized for running comprehensive trading system tests
+
+FROM python:3.11-slim
+
+# Set working directory
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    gcc \
+    g++ \
+    git \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements first (for better caching)
+COPY requirements.txt .
+
+# Install Python dependencies
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy the entire project
+COPY . .
+
+# Create directories for test results and data
+RUN mkdir -p /app/tests/results \
+    /app/src/data/mt5 \
+    /app/logs
+
+# Set environment variables
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONPATH=/app
+
+# Health check (check if test is still running)
+HEALTHCHECK --interval=5m --timeout=30s --start-period=1m --retries=3 \
+    CMD python -c "import sys; from pathlib import Path; sys.exit(0 if Path('/app/tests/results').exists() else 1)"
+
+# Default command: run 24-hour test with --skip-mt5 flag (for Docker)
+# Note: MT5 requires Windows, so we skip actual MT5 connection in Docker
+# The test will still test all other functionality (AI decisions, risk management, etc.)
+CMD ["python", "tests/test_24h_trading.py", "--duration", "24", "--interval", "15", "--skip-mt5"]

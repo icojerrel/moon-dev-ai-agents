@@ -14,6 +14,7 @@ from .base_model import BaseModel
 from .claude_model import ClaudeModel
 from .groq_model import GroqModel
 from .openai_model import OpenAIModel
+from .openrouter_model import OpenRouterModel
 # from .gemini_model import GeminiModel  # Temporarily disabled due to protobuf conflict
 from .deepseek_model import DeepSeekModel
 from .ollama_model import OllamaModel
@@ -28,6 +29,7 @@ class ModelFactory:
         "claude": ClaudeModel,
         "groq": GroqModel,
         "openai": OpenAIModel,
+        "openrouter": OpenRouterModel,  # OpenRouter unified API
         # "gemini": GeminiModel,  # Temporarily disabled due to protobuf conflict
         "deepseek": DeepSeekModel,
         "ollama": OllamaModel,  # Add Ollama implementation
@@ -39,6 +41,7 @@ class ModelFactory:
         "claude": "claude-3-5-haiku-latest",  # Latest fast Claude model
         "groq": "mixtral-8x7b-32768",        # Fast Mixtral model
         "openai": "gpt-4o",                  # Latest GPT-4 Optimized
+        "openrouter": "anthropic/claude-3-5-haiku",  # Fast Claude via OpenRouter
         # "gemini": "gemini-2.0-flash",        # Latest Gemini model (temporarily disabled)
         "deepseek": "deepseek-reasoner",     # Enhanced reasoning model
         "ollama": "llama3.2",                # Meta's Llama 3.2 - balanced performance
@@ -67,7 +70,7 @@ class ModelFactory:
         
         # Debug current environment without exposing values
         cprint("\n🔍 Environment Check:", "cyan")
-        for key in ["GROQ_API_KEY", "OPENAI_KEY", "ANTHROPIC_KEY", "DEEPSEEK_KEY", "GROK_API_KEY"]:  # GEMINI_KEY temporarily removed
+        for key in ["GROQ_API_KEY", "OPENAI_KEY", "OPENROUTER_API_KEY", "ANTHROPIC_KEY", "DEEPSEEK_KEY", "GROK_API_KEY"]:  # GEMINI_KEY temporarily removed
             value = os.getenv(key)
             if value and len(value.strip()) > 0:
                 cprint(f"  ├─ {key}: Found ({len(value)} chars)", "green")
@@ -211,6 +214,7 @@ class ModelFactory:
             "claude": "ANTHROPIC_KEY",
             "groq": "GROQ_API_KEY",
             "openai": "OPENAI_KEY",
+            "openrouter": "OPENROUTER_API_KEY",  # OpenRouter unified API
             # "gemini": "GEMINI_KEY",  # Temporarily disabled due to protobuf conflict
             "deepseek": "DEEPSEEK_KEY",
             "xai": "GROK_API_KEY",  # Grok/xAI uses GROK_API_KEY

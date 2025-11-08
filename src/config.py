@@ -105,6 +105,155 @@ REALTIME_CLIPS_AI_MODEL = 'groq'  # Model type: groq, openai, claude, deepseek, 
 REALTIME_CLIPS_AI_MODEL_NAME = None  # None = use default for model type
 REALTIME_CLIPS_TWITTER = True  # Auto-open Twitter compose after clip
 
+# MetaTrader 5 Settings 💹
+MT5_ENABLED = True  # Enable MT5 trading agent ✅
+
+# Multi-Asset Trading Configuration
+# Choose symbols from different asset classes based on your broker
+
+# 🌍 FOREX PAIRS (Currency Trading)
+MT5_FOREX_PAIRS = [
+    'EURUSD',   # Euro vs US Dollar (most liquid)
+    'GBPUSD',   # British Pound vs US Dollar (Cable)
+    'USDJPY',   # US Dollar vs Japanese Yen
+    'AUDUSD',   # Australian Dollar vs US Dollar (Aussie)
+    'USDCAD',   # US Dollar vs Canadian Dollar (Loonie)
+    'NZDUSD',   # New Zealand Dollar vs US Dollar (Kiwi)
+    # 'USDCHF',   # US Dollar vs Swiss Franc
+    # 'EURGBP',   # Euro vs British Pound
+    # 'EURJPY',   # Euro vs Japanese Yen
+]
+
+# 🏆 PRECIOUS METALS (Commodities)
+MT5_METALS = [
+    'XAUUSD',   # Gold vs US Dollar (most popular)
+    # 'XAGUSD',   # Silver vs US Dollar
+    # 'XPTUSD',   # Platinum vs US Dollar
+    # 'XPDUSD',   # Palladium vs US Dollar
+]
+
+# 📈 INDICES (Stock Market Indices)
+MT5_INDICES = [
+    'US30',     # Dow Jones Industrial Average (US stocks)
+    'NAS100',   # NASDAQ 100 (tech stocks)
+    'SPX500',   # S&P 500 (US large cap)
+    # 'UK100',    # FTSE 100 (UK stocks)
+    # 'GER40',    # DAX 40 (German stocks)
+    # 'FRA40',    # CAC 40 (French stocks)
+    # 'JPN225',   # Nikkei 225 (Japanese stocks)
+    # 'AUS200',   # ASX 200 (Australian stocks)
+]
+
+# 📊 INDIVIDUAL STOCKS (if your broker supports)
+MT5_STOCKS = [
+    # US Tech Stocks (check exact symbols with your broker)
+    # 'AAPL',     # Apple Inc.
+    # 'MSFT',     # Microsoft Corporation
+    # 'GOOGL',    # Alphabet Inc.
+    # 'AMZN',     # Amazon.com Inc.
+    # 'TSLA',     # Tesla Inc.
+    # 'NVDA',     # NVIDIA Corporation
+    # 'META',     # Meta Platforms Inc.
+]
+
+# ⚡ ENERGIES (Oil, Gas)
+MT5_ENERGIES = [
+    # 'XTIUSD',   # WTI Crude Oil
+    # 'XBRUSD',   # Brent Crude Oil
+    # 'XNGUSD',   # Natural Gas
+]
+
+# 🪙 CRYPTO (if your broker supports)
+MT5_CRYPTO = [
+    # 'BTCUSD',   # Bitcoin
+    # 'ETHUSD',   # Ethereum
+    # 'BNBUSD',   # Binance Coin
+]
+
+# Combined symbol list (used by agent)
+MT5_SYMBOLS = (
+    MT5_FOREX_PAIRS +
+    MT5_METALS +
+    MT5_INDICES +
+    MT5_STOCKS +
+    MT5_ENERGIES +
+    MT5_CRYPTO
+)
+
+# Position Sizing (per asset class)
+MT5_POSITION_SIZES = {
+    'forex': 0.01,      # 0.01 lots = 1,000 units (micro lot)
+    'metals': 0.01,     # Gold: 0.01 lots = 1 oz
+    'indices': 0.10,    # Indices often need larger lot sizes
+    'stocks': 1,        # Individual stocks: 1 share
+    'energies': 0.01,   # Oil: 0.01 lots = 1 barrel
+    'crypto': 0.01,     # BTC: 0.01 lots = 0.01 BTC
+}
+
+# Risk Management per Asset Class
+MT5_RISK_PARAMS = {
+    'forex': {
+        'max_spread_pips': 3,      # Skip if spread > 3 pips
+        'min_stop_loss_pips': 20,  # Minimum SL distance
+        'max_stop_loss_pips': 100, # Maximum SL distance
+        'default_tp_ratio': 2.0,   # TP = SL * 2 (risk:reward)
+    },
+    'metals': {
+        'max_spread_pips': 50,     # Gold has wider spreads
+        'min_stop_loss_pips': 100, # Larger moves in gold
+        'max_stop_loss_pips': 500,
+        'default_tp_ratio': 2.5,
+    },
+    'indices': {
+        'max_spread_pips': 50,
+        'min_stop_loss_pips': 50,
+        'max_stop_loss_pips': 300,
+        'default_tp_ratio': 2.0,
+    },
+    'stocks': {
+        'max_spread_pips': 100,
+        'min_stop_loss_pips': 50,
+        'max_stop_loss_pips': 500,
+        'default_tp_ratio': 2.5,
+    },
+}
+
+# Timeframes per Asset Class
+MT5_TIMEFRAMES = {
+    'forex': '1H',      # Forex: hourly charts
+    'metals': '4H',     # Gold: 4-hour charts (slower moves)
+    'indices': '1H',    # Indices: hourly charts
+    'stocks': '1D',     # Stocks: daily charts
+}
+
+# Global MT5 Settings
+MT5_MAX_POSITION_SIZE = 1.0     # Maximum position size in lots
+MT5_MAX_POSITIONS = 1           # ⚠️ MAXIMUM 1 POSITION AT A TIME (strict risk control)
+MT5_MAX_POSITIONS_PER_SYMBOL = 1  # Max positions per symbol
+MT5_MODEL_TYPE = 'openrouter'   # AI model provider: openrouter (unified), anthropic, openai, deepseek, groq
+MT5_MODEL_NAME = 'deepseek/deepseek-chat-v3-0324'  # Primary model (powerful & affordable!)
+MT5_FALLBACK_MODEL = 'anthropic/claude-sonnet-4.5'  # Fallback model if primary fails
+MT5_MIN_CONFIDENCE = 75         # Minimum AI confidence % to execute trade (0-100)
+
+# Trading Hours & Volatility Filter ⏰
+MT5_USE_TRADING_HOURS_FILTER = True  # Enable optimal trading hours filter
+MT5_STRICT_HOURS = True               # True = only best hours, False = allow good hours
+# When enabled, system will ONLY trade during high-volatility periods:
+# - Forex: London/NY overlap (13:00-17:00 UTC) + London morning (08:00-12:00 UTC)
+# - Gold: NY session (13:00-20:00 UTC)
+# - Indices: Mid-day stable hours (15:00-20:00 UTC), avoiding first/last 30min
+# - Stocks: Mid-day hours (15:30-19:30 UTC), avoiding opening/closing volatility
+
+MT5_AVOID_MONDAY_EARLY = True        # Avoid Monday before 08:00 UTC (weekend gaps)
+MT5_AVOID_FRIDAY_LATE = True         # Avoid Friday after 20:00 UTC (weekend risk)
+MT5_AVOID_LOW_VOLATILITY = True      # Skip trades during Asian session (low vol)
+
+# Sandbox/Test Mode Settings 🧪
+SANDBOX_MODE = True             # Enable for testing without real broker
+SANDBOX_STARTING_BALANCE = 150000  # Virtual account balance for sandbox (150k)
+SANDBOX_USE_MOCK_DATA = False   # Use generated mock market data
+SANDBOX_SIMULATE_TRADES = True  # Simulate trade execution without MT5
+
 # Future variables (not active yet) 🔮
 sell_at_multiple = 3
 USDC_SIZE = 1

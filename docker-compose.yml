@@ -1,0 +1,139 @@
+# Moon Dev AI Trading Agents - Docker Compose
+# Production deployment configuration
+
+version: '3.8'
+
+services:
+  # Main trading system
+  trading-system:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: moondev-trading
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      - LOG_LEVEL=INFO
+      - JSON_LOGS=false
+      - TELEGRAM_ALERTS_ENABLED=true
+      - MIN_ALERT_LEVEL=WARNING
+    volumes:
+      # Persist logs
+      - ./logs:/app/logs
+      # Persist data
+      - ./src/data:/app/src/data
+      # Mount config for easy updates
+      - ./src/config.py:/app/src/config.py:ro
+    networks:
+      - moondev-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # MT5 Trading Agent (separate container)
+  mt5-agent:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: moondev-mt5
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      - LOG_LEVEL=INFO
+      - JSON_LOGS=false
+    command: ["python", "src/agents/mt5_trading_agent.py"]
+    volumes:
+      - ./logs:/app/logs
+      - ./src/data:/app/src/data
+    networks:
+      - moondev-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    # Only start if MT5 is enabled
+    profiles:
+      - mt5
+
+  # Risk Agent (runs independently)
+  risk-agent:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: moondev-risk
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      - LOG_LEVEL=INFO
+    command: ["python", "src/agents/risk_agent.py"]
+    volumes:
+      - ./logs:/app/logs
+      - ./src/data:/app/src/data
+    networks:
+      - moondev-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    profiles:
+      - risk
+
+  # Sentiment Agent
+  sentiment-agent:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: moondev-sentiment
+    restart: unless-stopped
+    env_file:
+      - .env
+    command: ["python", "src/agents/sentiment_agent.py"]
+    volumes:
+      - ./logs:/app/logs
+      - ./src/data:/app/src/data
+    networks:
+      - moondev-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    profiles:
+      - sentiment
+
+  # Health Monitor (optional)
+  health-monitor:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: moondev-health
+    restart: unless-stopped
+    env_file:
+      - .env
+    command: ["python", "src/utils/health_monitor.py"]
+    volumes:
+      - ./logs:/app/logs
+    networks:
+      - moondev-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    profiles:
+      - monitoring
+
+networks:
+  moondev-network:
+    driver: bridge
+
+volumes:
+  logs:
+  data:
