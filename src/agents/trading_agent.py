@@ -106,6 +106,14 @@ from src import nice_funcs as n
 from src.data.ohlcv_collector import collect_all_tokens
 from src.models.model_factory import model_factory
 
+# Memory integration
+try:
+    from src.memory import AgentMemory, MemoryScope
+    MEMORY_AVAILABLE = True
+except ImportError:
+    MEMORY_AVAILABLE = False
+    print("⚠️ Memory module not available - running without persistent memory")
+
 # Load environment variables
 load_dotenv()
 
@@ -125,7 +133,39 @@ class TradingAgent:
         cprint(f"✅ Using model: {self.model.model_name}", "green")
 
         self.recommendations_df = pd.DataFrame(columns=['token', 'action', 'confidence', 'reasoning'])
+
+        # Initialize memory
+        if MEMORY_AVAILABLE:
+            self.memory = AgentMemory(agent_name="trading_agent")
+            if self.memory.enabled:
+                cprint("🧠 Memory layer initialized", "cyan")
+                # Check for risk warnings from risk_agent
+                self._check_risk_warnings()
+        else:
+            self.memory = None
+
         cprint("🤖 Moon Dev's LLM Trading Agent initialized!", "green")
+
+    def _check_risk_warnings(self):
+        """Check for recent risk warnings from risk_agent"""
+        if not self.memory or not self.memory.enabled:
+            return
+
+        try:
+            # Get recent risk alerts
+            risk_alerts = self.memory.get_recent(
+                scope=MemoryScope.ALERTS,
+                hours=1,
+                priority="critical"
+            )
+
+            if risk_alerts:
+                cprint("\n⚠️ RISK WARNINGS FROM RISK AGENT:", "yellow")
+                for alert in risk_alerts:
+                    cprint(f"  • {alert['content']}", "yellow")
+                    cprint(f"    (from {alert['agent']} at {alert['timestamp']})", "yellow")
+        except Exception as e:
+            print(f"⚠️ Error checking risk warnings: {e}")
 
     def chat_with_ai(self, system_prompt, user_content):
         """Send prompt to AI model via model factory"""
@@ -199,7 +239,21 @@ Strategy Signals Available:
                     'reasoning': reasoning
                 }])
             ], ignore_index=True)
-            
+
+            # Store trading decision in memory
+            if self.memory and self.memory.enabled:
+                self.memory.store(
+                    f"Trading decision for {token[:8]}: {action} (confidence: {confidence}%)",
+                    scope=MemoryScope.TRADING,
+                    priority="high" if action in ["BUY", "SELL"] else "medium",
+                    metadata={
+                        "token": token,
+                        "action": action,
+                        "confidence": confidence,
+                        "reasoning": reasoning[:500]  # Truncate for storage
+                    }
+                )
+
             print(f"🎯 Moon Dev's AI Analysis Complete for {token[:4]}!")
             return response
             
@@ -305,6 +359,20 @@ Example format:
                         print(f"✨ Executing entry for {token}")
                         n.ai_entry(token, amount)
                         print(f"✅ Entry complete for {token}")
+
+                        # Store trade execution in memory
+                        if self.memory and self.memory.enabled:
+                            self.memory.store(
+                                f"BUY executed: {token[:8]} for ${amount:.2f}",
+                                scope=MemoryScope.TRADING,
+                                priority="high",
+                                metadata={
+                                    "token": token,
+                                    "action": "BUY",
+                                    "amount_usd": amount,
+                                    "previous_position": current_position
+                                }
+                            )
                     else:
                         print(f"⏸️ Position already at target size for {token}")
                     
@@ -340,6 +408,20 @@ Example format:
                     cprint(f"📉 Closing position with chunk_kill...", "white", "on_cyan")
                     n.chunk_kill(token, max_usd_order_size, slippage)
                     cprint(f"✅ Successfully closed position", "white", "on_green")
+
+                    # Store position closure in memory
+                    if self.memory and self.memory.enabled:
+                        self.memory.store(
+                            f"SELL executed: {token[:8]} - closed ${current_position:.2f} position",
+                            scope=MemoryScope.TRADING,
+                            priority="high",
+                            metadata={
+                                "token": token,
+                                "action": "SELL",
+                                "position_value": current_position,
+                                "reason": action
+                            }
+                        )
                 except Exception as e:
                     cprint(f"❌ Error closing position: {str(e)}", "white", "on_red")
             elif current_position > 0:

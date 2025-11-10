@@ -85,6 +85,13 @@ AI_MODEL = "claude-3-haiku-20240307"  # Model Options:
 AI_MAX_TOKENS = 1024  # Max tokens for response
 AI_TEMPERATURE = 0.7  # Creativity vs precision (0-1)
 
+# Memory Layer Settings 🧠 (mem-layer integration)
+ENABLE_MEMORY = True  # Enable persistent memory across agent runs
+MEMORY_DB_PATH = "src/data/memory/agent_memory.db"  # Database location
+MEMORY_RETENTION_DAYS = 30  # How long to keep memories (critical data)
+ENABLE_MEMORY_CACHING = True  # Cache API responses to reduce costs
+ENABLE_CROSS_AGENT_SHARING = True  # Agents can share insights with each other
+
 # Trading Strategy Agent Settings - MAY NOT BE USED YET 1/5/25
 ENABLE_STRATEGIES = True  # Set this to True to use strategies
 STRATEGY_MIN_CONFIDENCE = 0.7  # Minimum confidence to act on strategy signals

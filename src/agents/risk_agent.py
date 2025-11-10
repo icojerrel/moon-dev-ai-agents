@@ -57,6 +57,14 @@ from src.config import *
 from src.agents.base_agent import BaseAgent
 import traceback
 
+# Memory integration
+try:
+    from src.memory import AgentMemory, MemoryScope
+    MEMORY_AVAILABLE = True
+except ImportError:
+    MEMORY_AVAILABLE = False
+    print("⚠️ Memory module not available - running without persistent memory")
+
 # Load environment variables
 load_dotenv()
 
@@ -113,6 +121,15 @@ class RiskAgent(BaseAgent):
         print(f"🏦 Initial Portfolio Balance: ${self.start_balance:.2f}")
         
         self.current_value = self.start_balance
+
+        # Initialize memory
+        if MEMORY_AVAILABLE:
+            self.memory = AgentMemory(agent_name="risk_agent")
+            if self.memory.enabled:
+                cprint("🧠 Memory layer initialized", "cyan")
+        else:
+            self.memory = None
+
         cprint("🛡️ Risk Agent initialized!", "white", "on_blue")
         
     def get_portfolio_value(self):
@@ -453,6 +470,19 @@ class RiskAgent(BaseAgent):
     def handle_limit_breach(self, breach_type, current_value):
         """Handle breached risk limits with AI consultation if enabled"""
         try:
+            # Store breach event in memory
+            if self.memory and self.memory.enabled:
+                self.memory.broadcast(
+                    f"RISK LIMIT BREACH: {breach_type} - Current value: {current_value}",
+                    scope=MemoryScope.ALERTS,
+                    priority="critical",
+                    metadata={
+                        "breach_type": breach_type,
+                        "current_value": current_value,
+                        "timestamp": datetime.now().isoformat()
+                    }
+                )
+
             # If AI confirmation is disabled, close positions immediately
             if not USE_AI_CONFIRMATION:
                 print(f"\n🚨 {breach_type} limit breached! Closing all positions immediately...")
@@ -537,7 +567,21 @@ Then explain your reasoning.
             
             # Parse decision
             decision = response_text.split('\n')[0].strip()
-            
+
+            # Store AI decision in memory
+            if self.memory and self.memory.enabled:
+                self.memory.store(
+                    f"AI Risk Decision: {decision} - {response_text[:200]}",
+                    scope=MemoryScope.RISK,
+                    priority="high",
+                    metadata={
+                        "breach_type": breach_type,
+                        "decision": decision,
+                        "reasoning": response_text,
+                        "model": "DeepSeek" if self.deepseek_client else "Claude"
+                    }
+                )
+
             if decision == "CLOSE_ALL":
                 print("🚨 AI recommends closing all positions!")
                 self.close_all_positions()
@@ -571,11 +615,24 @@ Then explain your reasoning.
             # Get current PnL
             current_pnl = self.get_current_pnl()
             current_balance = self.get_portfolio_value()
-            
+
             print(f"\n💰 Current PnL: ${current_pnl:.2f}")
             print(f"💼 Current Balance: ${current_balance:.2f}")
             print(f"📉 Minimum Balance Limit: ${MINIMUM_BALANCE_USD:.2f}")
-            
+
+            # Store portfolio status in memory
+            if self.memory and self.memory.enabled:
+                self.memory.store(
+                    f"Portfolio status: PnL ${current_pnl:.2f}, Balance ${current_balance:.2f}",
+                    scope=MemoryScope.RISK,
+                    priority="medium",
+                    metadata={
+                        "pnl": current_pnl,
+                        "balance": current_balance,
+                        "start_balance": self.start_balance
+                    }
+                )
+
             # Check minimum balance limit
             if current_balance < MINIMUM_BALANCE_USD:
                 print(f"⚠️ ALERT: Current balance ${current_balance:.2f} is below minimum ${MINIMUM_BALANCE_USD:.2f}")

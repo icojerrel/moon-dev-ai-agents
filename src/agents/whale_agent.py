@@ -31,6 +31,14 @@ import traceback
 import numpy as np
 import anthropic
 
+# Memory integration
+try:
+    from src.memory import AgentMemory, MemoryScope
+    MEMORY_AVAILABLE = True
+except ImportError:
+    MEMORY_AVAILABLE = False
+    print("⚠️ Memory module not available - running without persistent memory")
+
 # Get the project root directory
 PROJECT_ROOT = Path(__file__).parent.parent.parent
 
@@ -135,7 +143,15 @@ class WhaleAgent(BaseAgent):
         # Initialize or load historical data
         self.history_file = self.data_dir / "oi_history.csv"
         self.load_history()
-        
+
+        # Initialize memory
+        if MEMORY_AVAILABLE:
+            self.memory = AgentMemory(agent_name="whale_agent")
+            if self.memory.enabled:
+                cprint("🧠 Memory layer initialized", "cyan")
+        else:
+            self.memory = None
+
         print("🐋 Dez the Whale Agent initialized!")
         
     def load_history(self):
@@ -242,7 +258,36 @@ class WhaleAgent(BaseAgent):
             print("\n💾 Saving to history file...")
             self.oi_history.to_csv(self.history_file, index=False)
             print("✅ Save complete!")
-            
+
+            # Store significant OI changes in memory
+            if self.memory and self.memory.enabled:
+                # Store whale movements (>2% change is significant for OI)
+                if abs(btc_change_pct) > 2.0:
+                    direction = "increased" if btc_change_pct > 0 else "decreased"
+                    self.memory.store(
+                        f"Large BTC OI movement: {direction} {abs(btc_change_pct):.2f}%",
+                        scope=MemoryScope.WHALE,
+                        priority="high",
+                        metadata={
+                            "btc_oi": btc_oi,
+                            "btc_change_pct": btc_change_pct,
+                            "total_oi": total_oi,
+                            "timestamp": timestamp.isoformat() if hasattr(timestamp, 'isoformat') else str(timestamp)
+                        }
+                    )
+
+                # Broadcast extreme movements (>5%)
+                if abs(btc_change_pct) > 5.0:
+                    self.memory.broadcast(
+                        f"EXTREME whale activity on BTC: {abs(btc_change_pct):.2f}% OI {direction}!",
+                        scope=MemoryScope.ALERTS,
+                        priority="critical",
+                        metadata={
+                            "btc_change_pct": btc_change_pct,
+                            "btc_oi_usd": btc_oi
+                        }
+                    )
+
         except Exception as e:
             print(f"\n❌ Error saving OI data: {str(e)}")
             print(f"📋 Stack trace:\n{traceback.format_exc()}")
@@ -473,12 +518,43 @@ class WhaleAgent(BaseAgent):
                     except:
                         print("⚠️ Could not parse confidence, using default")
             
-            return {
+            result = {
                 'action': action,
                 'analysis': analysis,
                 'confidence': confidence
             }
-            
+
+            # Store AI analysis in memory and handoff to trading_agent if actionable
+            if self.memory and self.memory.enabled:
+                # Store whale analysis
+                self.memory.store(
+                    f"Whale AI analysis: {action} ({confidence}% confidence) - {analysis[:200]}",
+                    scope=MemoryScope.WHALE,
+                    priority="high" if action in ["BUY", "SELL"] else "medium",
+                    metadata={
+                        "action": action,
+                        "confidence": confidence,
+                        "oi_change_pct": changes['btc'],
+                        "analysis": analysis
+                    }
+                )
+
+                # Handoff to trading_agent if high confidence signal
+                if action in ["BUY", "SELL"] and confidence >= 70:
+                    self.memory.handoff(
+                        to_agent="trading_agent",
+                        message=f"Whale signal: {action} on BTC with {confidence}% confidence based on {changes['btc']:.2f}% OI change",
+                        context={
+                            "action": action,
+                            "confidence": confidence,
+                            "oi_change_pct": changes['btc'],
+                            "asset": "BTC",
+                            "reason": analysis[:300]
+                        }
+                    )
+
+            return result
+
         except Exception as e:
             print(f"❌ Error in AI analysis: {str(e)}")
             traceback.print_exc()

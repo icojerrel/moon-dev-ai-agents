@@ -13,6 +13,14 @@ import inspect
 import time
 from src import nice_funcs as n
 
+# Memory integration
+try:
+    from src.memory import AgentMemory, MemoryScope
+    MEMORY_AVAILABLE = True
+except ImportError:
+    MEMORY_AVAILABLE = False
+    print("⚠️ Memory module not available - running without persistent memory")
+
 # 🎯 Strategy Evaluation Prompt
 STRATEGY_EVAL_PROMPT = """
 You are Moon Dev's Strategy Validation Assistant 🌙
@@ -72,7 +80,15 @@ class StrategyAgent:
                 print(f"⚠️ Error loading strategies: {e}")
         else:
             print("🤖 Strategy Agent is disabled in config.py")
-        
+
+        # Initialize memory
+        if MEMORY_AVAILABLE:
+            self.memory = AgentMemory(agent_name="strategy_agent")
+            if self.memory.enabled:
+                cprint("🧠 Memory layer initialized", "cyan")
+        else:
+            self.memory = None
+
         print(f"🤖 Moon Dev's Strategy Agent initialized with {len(self.enabled_strategies)} strategies!")
 
     def evaluate_signals(self, signals, market_data):
@@ -259,17 +275,48 @@ class StrategyAgent:
                             print(f"✨ Executing BUY for {token}")
                             n.ai_entry(token, target_size)
                             print(f"✅ Entry complete for {token}")
+
+                            # Track strategy execution in memory
+                            if self.memory and self.memory.enabled:
+                                self.memory.store(
+                                    f"Strategy BUY: {signal.get('strategy_name')} signal for {token[:8]} - ${target_size:.2f}",
+                                    scope=MemoryScope.STRATEGY,
+                                    priority="high",
+                                    metadata={
+                                        "token": token,
+                                        "action": "BUY",
+                                        "strategy": signal.get('strategy_name'),
+                                        "strength": strength,
+                                        "target_size_usd": target_size,
+                                        "entry_position": current_position
+                                    }
+                                )
                         else:
                             print(f"⏸️ Position already at or above target size")
-                            
+
                     elif direction == 'SELL':
                         if current_position > 0:
                             print(f"📉 Executing SELL for {token}")
                             n.chunk_kill(token, max_usd_order_size, slippage)
                             print(f"✅ Exit complete for {token}")
+
+                            # Track strategy exit in memory
+                            if self.memory and self.memory.enabled:
+                                self.memory.store(
+                                    f"Strategy SELL: {signal.get('strategy_name')} signal for {token[:8]} - closed ${current_position:.2f}",
+                                    scope=MemoryScope.STRATEGY,
+                                    priority="high",
+                                    metadata={
+                                        "token": token,
+                                        "action": "SELL",
+                                        "strategy": signal.get('strategy_name'),
+                                        "strength": strength,
+                                        "exit_position_value": current_position
+                                    }
+                                )
                         else:
                             print(f"⏸️ No position to sell")
-                    
+
                     time.sleep(2)  # Small delay between trades
                     
                 except Exception as e:
