@@ -91,8 +91,16 @@ def patched_client(*args, **kwargs):
 
 httpx.Client = patched_client
 
-# imports 
+# imports
 from twikit import Client, TooManyRequests, BadRequest
+
+# Memory integration
+try:
+    from src.memory import AgentMemory, MemoryScope
+    MEMORY_AVAILABLE = True
+except ImportError:
+    MEMORY_AVAILABLE = False
+    print("⚠️ Memory module not available - running without persistent memory")
 
 class SentimentAgent:
     def __init__(self):
@@ -102,15 +110,23 @@ class SentimentAgent:
         self.model = None
         self.audio_dir = Path("src/audio")
         self.audio_dir.mkdir(parents=True, exist_ok=True)
-        
+
         # Initialize sentiment history file
         if not os.path.exists(SENTIMENT_HISTORY_FILE):
             pd.DataFrame(columns=['timestamp', 'sentiment_score', 'num_tweets']).to_csv(SENTIMENT_HISTORY_FILE, index=False)
-        
+
         # Load the sentiment model at initialization
         cprint("🤖 Loading sentiment model...", "cyan")
         self.init_sentiment_model()
-            
+
+        # Initialize memory
+        if MEMORY_AVAILABLE:
+            self.memory = AgentMemory(agent_name="sentiment_agent")
+            if self.memory.enabled:
+                cprint("🧠 Memory layer initialized", "cyan")
+        else:
+            self.memory = None
+
         cprint("🌙 Moon Dev's Sentiment Agent initialized!", "green")
         
     def init_sentiment_model(self):
@@ -197,7 +213,7 @@ class SentimentAgent:
                 'sentiment_score': sentiment_score,
                 'num_tweets': num_tweets
             }])
-            
+
             # Load existing data
             if os.path.exists(SENTIMENT_HISTORY_FILE):
                 history_df = pd.read_csv(SENTIMENT_HISTORY_FILE)
@@ -212,9 +228,33 @@ class SentimentAgent:
                 history_df = pd.concat([history_df, new_data], ignore_index=True)
             else:
                 history_df = new_data
-                
+
             history_df.to_csv(SENTIMENT_HISTORY_FILE, index=False)
-            
+
+            # Store in memory layer
+            if self.memory and self.memory.enabled:
+                # Convert score to readable label
+                if sentiment_score > 0.3:
+                    label = "very positive"
+                elif sentiment_score > 0:
+                    label = "slightly positive"
+                elif sentiment_score > -0.3:
+                    label = "slightly negative"
+                else:
+                    label = "very negative"
+
+                self.memory.store(
+                    f"Sentiment: {label} (score: {sentiment_score:.2f}) from {num_tweets} tweets",
+                    scope=MemoryScope.SENTIMENT,
+                    priority="medium",
+                    metadata={
+                        "sentiment_score": sentiment_score,
+                        "num_tweets": num_tweets,
+                        "score_percent": (sentiment_score + 1) * 50,
+                        "label": label
+                    }
+                )
+
         except Exception as e:
             cprint(f"❌ Error saving sentiment history: {str(e)}", "red")
 
@@ -300,11 +340,37 @@ class SentimentAgent:
                 message += f" - a small {abs(percent_change):.1f}% change"
         
         message += "."
-        
+
         # Announce with voice if sentiment is significant or if there's a big change
         is_important = abs(sentiment_score) > SENTIMENT_ANNOUNCE_THRESHOLD or (percent_change is not None and abs(percent_change) > 5)
         self._announce(message, is_important)
-        
+
+        # Broadcast extreme sentiment or significant changes to all agents
+        if self.memory and self.memory.enabled:
+            if abs(sentiment_score) > 0.5:  # Very extreme sentiment
+                self.memory.broadcast(
+                    f"EXTREME sentiment detected: {sentiment} ({score_percent:.1f}/100)",
+                    scope=MemoryScope.ALERTS,
+                    priority="high",
+                    metadata={
+                        "sentiment_score": sentiment_score,
+                        "label": sentiment,
+                        "num_tweets": len(texts)
+                    }
+                )
+            elif percent_change is not None and abs(percent_change) > 10:  # Big sentiment shift
+                direction = "up" if percent_change > 0 else "down"
+                self.memory.broadcast(
+                    f"Large sentiment shift {direction}: {abs(percent_change):.1f} points in {int(time_diff)} min",
+                    scope=MemoryScope.ALERTS,
+                    priority="high",
+                    metadata={
+                        "percent_change": percent_change,
+                        "time_minutes": int(time_diff),
+                        "current_score": sentiment_score
+                    }
+                )
+
         # If not announcing vocally, print the raw score for debugging
         if not is_important:
             cprint(f"📊 Raw sentiment score: {sentiment_score:.2f} (on scale of -1 to 1)", "cyan")
