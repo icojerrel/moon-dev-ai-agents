@@ -40,8 +40,13 @@ PyPDF2>=3.0.0
 youtube-transcript-api>=0.6.2
 pandas-ta>=0.3.14b0
 
+# Technical Analysis & Portfolio Optimization (Added from GitHub research)
+ta>=0.11.0  # Technical Analysis Library - 62+ indicators, lighter than pandas-ta
+pyportfolioopt>=1.5.5  # Portfolio optimization, risk management, HRP, Black-Litterman
+
 # MetaTrader 5 Integration
 MetaTrader5>=5.0.45
+aiomql>=2.3.11  # Async MetaTrader5 - 10-50x faster, concurrent trading
 
 # Production Utilities
 psutil>=5.9.0  # System monitoring
