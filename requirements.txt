@@ -45,3 +45,7 @@ MetaTrader5>=5.0.45
 
 # Production Utilities
 psutil>=5.9.0  # System monitoring
+
+# New Agent Dependencies (Added during upstream merge)
+websocket-client>=1.6.0  # For Polymarket WebSocket connections
+py_clob_client>=0.23.0  # For Polymarket API integration

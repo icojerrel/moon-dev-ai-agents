@@ -3,6 +3,13 @@
 Built with love by Moon Dev 🚀
 """
 
+# 🔄 Exchange Selection (for new trading_agent_swarm.py)
+EXCHANGE = 'solana'  # Options: 'solana', 'hyperliquid', 'aster'
+
+# ⚡ HyperLiquid Configuration (for trading_agent_swarm.py)
+HYPERLIQUID_SYMBOLS = ['BTC', 'ETH', 'SOL']  # Symbols to trade on HyperLiquid perps
+HYPERLIQUID_LEVERAGE = 5  # Default leverage for HyperLiquid trades (1-50)
+
 # 💰 Trading Configuration
 USDC_ADDRESS = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"  # Never trade or close
 SOL_ADDRESS = "So11111111111111111111111111111111111111111"   # Never trade or close
