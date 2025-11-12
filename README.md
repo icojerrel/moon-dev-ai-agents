@@ -73,6 +73,84 @@ feel free to join [our discord](https://discord.gg/8UPuVZ53bh) if you beleive ai
 - **Housecoin Agent** (`housecoin_agent.py`): DCA (dollar cost average) agent with AI confirmation layer using Grok-4 for the thesis: 1 House = 1 Housecoin 🏠
 - **Polymarket Agent** (`polymarket_agent.py`): Connects to the live trades feed via WebSocket and analyzes with the swarm agent to see which markets could be interesting to trade
 
+---
+
+## 🧠 NEW: Persistent Memory System (MemoriSDK)
+
+**10 agents now have persistent memory with cross-session learning!**
+
+### What is it?
+
+MemoriSDK gives agents the ability to **remember** conversations, decisions, and patterns across sessions. Instead of starting fresh every time, agents now build knowledge over time and can learn from each other.
+
+### Key Benefits
+
+✅ **Cross-Session Memory** - Agents remember past conversations and decisions
+✅ **Cross-Agent Intelligence** - Agents share insights through shared memory pools
+✅ **Semantic Search** - Agents retrieve relevant context, not just recent messages
+✅ **Entity Extraction** - Automatic extraction of tokens, prices, decisions
+✅ **Cost Effective** - 80-90% cheaper than vector database alternatives
+✅ **Zero Configuration** - Works automatically once installed
+
+### Agents with Memory
+
+**Market Analysis Pool (Shared Memory)** 🌊
+- `sentiment_agent` + `whale_agent` + `funding_agent` share intelligence
+- **Example**: "Whales buying + bullish sentiment + negative funding = STRONG BUY signal"
+
+**Strategy Development Pool (Shared Memory)** 📈
+- `strategy_agent` learns from backtest results over time
+
+**Content Creation Pool (Shared Memory)** 🎨
+- `tweet_agent` coordinates topics to avoid repetition
+
+**Individual Memory** ⚡
+- `chat_agent` - Remembers user preferences and past questions
+- `trading_agent` - Learns from trading decisions and outcomes
+- `risk_agent` - Tracks risk patterns and decisions
+- `copybot_agent` - Learns which traders perform best
+- `solana_agent` - Remembers token discoveries and patterns
+
+### Quick Setup
+
+```bash
+# 1. Activate conda environment
+conda activate tflow
+
+# 2. Install MemoriSDK (one-time)
+pip install memorisdk
+
+# 3. Run any agent - memory works automatically!
+python src/agents/trading_agent.py
+# Look for: "🧠 Trading memory enabled with MemoriSDK!"
+```
+
+### Memory in Action
+
+**Without Memory**:
+```
+User: "Should I buy SOL?"
+Agent: [Analyzes current data only]
+```
+
+**With Memory**:
+```
+User: "Should I buy SOL?"
+Agent: [Retrieves from memory]
+  - "You asked about SOL 3 days ago at $98"
+  - "We bought SOL on Jan 10, made +12%"
+  - "Risk agent flagged SOL volatility yesterday"
+→ Makes informed decision with full historical context
+```
+
+### Documentation
+
+- 📚 **Quick Start**: `MEMORISDK_QUICKSTART.md`
+- 📖 **Full Guide**: `MEMORISDK_INTEGRATION_PLAN.md`
+- 📊 **Phase 2 Summary**: `PHASE2_COMPLETE_SUMMARY.md`
+- 🎓 **Demo Code**: `examples/memorisdk_poc.py`
+
+---
 
 ## ⚠️ Critical Disclaimers
 

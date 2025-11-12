@@ -67,6 +67,56 @@ src/
 
 Each agent can run independently or as part of the main orchestrator loop.
 
+### Persistent Memory System (MemoriSDK) 🧠
+
+**NEW**: 10 agents now have persistent memory with cross-session learning!
+
+Located at `src/agents/memory_config.py` - Centralized memory configuration
+
+**Key Features**:
+- **Persistent Memory**: Agents remember conversations and decisions across sessions
+- **Cross-Agent Intelligence**: Shared memory pools enable agents to learn from each other
+- **Entity Extraction**: Automatic extraction of tokens, prices, decisions, patterns
+- **Semantic Search**: Agents retrieve relevant context, not just recent messages
+- **SQL-Based**: SQLite databases (scalable to PostgreSQL)
+- **Cost Effective**: 80-90% cheaper than vector database alternatives
+
+**Memory Architecture**:
+
+*Shared Memory Pools (3 pools, cross-agent intelligence)*:
+1. **market_analysis_shared.db** → `sentiment_agent` + `whale_agent` + `funding_agent`
+   - Enables: "Whales buying + bullish sentiment + negative funding = strong buy signal"
+
+2. **strategy_development.db** → `strategy_agent` (+ RBI agent in future)
+   - Enables: Learning from backtest results and strategy performance over time
+
+3. **content_creation.db** → `tweet_agent` (+ video agent in future)
+   - Enables: Topic coordination to avoid duplicate content
+
+*Individual Memory (5 databases, specialized strategies)*:
+- `chat_agent.db` - Chat interactions and user preferences
+- `trading_agent.db` - Trading decisions and outcomes
+- `risk_agent.db` - Risk management decisions
+- `copybot_agent.db` - Copy trading strategies
+- `solana_agent.db` - Solana token discoveries
+
+**Quick Start**:
+```bash
+# Install MemoriSDK (one-time)
+conda activate tflow
+pip install memorisdk
+
+# Run any agent - memory works automatically
+python src/agents/trading_agent.py
+# Look for: "🧠 Trading memory enabled with MemoriSDK!"
+```
+
+**Documentation**:
+- Quick Start: `MEMORISDK_QUICKSTART.md`
+- Full Guide: `MEMORISDK_INTEGRATION_PLAN.md`
+- Phase 2 Summary: `PHASE2_COMPLETE_SUMMARY.md`
+- Implementation Notes: `MEMORISDK_IMPLEMENTATION_NOTES.md`
+
 ### LLM Integration (Model Factory)
 
 Located at `src/models/model_factory.py` and `src/models/README.md`
@@ -135,10 +185,27 @@ Result Storage (CSV/JSON in src/data/) → Optional Trade Execution
 When creating new agents:
 1. Inherit from base patterns in existing agents
 2. Use `ModelFactory` for LLM access
-3. Store outputs in `src/data/[agent_name]/`
-4. Make agent independently executable (standalone script)
-5. Add configuration to `config.py` if needed
-6. Follow naming: `[purpose]_agent.py`
+3. **Add persistent memory** (3 lines of code):
+   ```python
+   from src.agents.memory_config import get_memori
+
+   self.memori = get_memori('agent_type')  # or 'market_analysis', 'strategy', 'content'
+   if self.memori:
+       self.memori.enable()
+   ```
+4. Store outputs in `src/data/[agent_name]/`
+5. Make agent independently executable (standalone script)
+6. Add configuration to `config.py` if needed
+7. Follow naming: `[purpose]_agent.py`
+
+**Memory Integration Guidelines**:
+- Use **shared memory pools** for agents that benefit from cross-agent intelligence:
+  - `get_memori('market_analysis')` - For sentiment, whale, funding agents
+  - `get_memori('strategy')` - For strategy, RBI, research agents
+  - `get_memori('content')` - For tweet, video, content agents
+- Use **individual memory** for specialized trading strategies:
+  - `get_memori('trading', custom_db_path='./src/data/memory/agent_name.db')`
+- Memory is optional - agents work without it (graceful degradation)
 
 ### Testing Strategies
 
