@@ -33,6 +33,7 @@ import traceback
 import math
 from termcolor import colored, cprint
 import sys
+from src.agents.memory_config import get_memori  # MemoriSDK integration
 
 # Get the project root directory
 PROJECT_ROOT = Path(__file__).parent.parent.parent
@@ -130,7 +131,13 @@ class TweetAgent:
         # Generate output filename with timestamp
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         self.output_file = self.tweets_dir / f"generated_tweets_{timestamp}.txt"
-        
+
+        # MemoriSDK integration - shared memory with video agent
+        self.memori = get_memori('content')
+        if self.memori:
+            self.memori.enable()
+            cprint("🧠 Tweet content memory enabled (shared with video agent)!", "green")
+
     def _chunk_text(self, text):
         """Split text into chunks of MAX_CHUNK_SIZE characters"""
         return [text[i:i + MAX_CHUNK_SIZE] 

@@ -12,6 +12,7 @@ import importlib
 import inspect
 import time
 from src import nice_funcs as n
+from src.agents.memory_config import get_memori  # MemoriSDK integration
 
 # 🎯 Strategy Evaluation Prompt
 STRATEGY_EVAL_PROMPT = """
@@ -72,7 +73,13 @@ class StrategyAgent:
                 print(f"⚠️ Error loading strategies: {e}")
         else:
             print("🤖 Strategy Agent is disabled in config.py")
-        
+
+        # MemoriSDK integration - shared memory with RBI agent
+        self.memori = get_memori('strategy')
+        if self.memori:
+            self.memori.enable()
+            cprint("🧠 Strategy memory enabled (shared with RBI agent)!", "green")
+
         print(f"🤖 Moon Dev's Strategy Agent initialized with {len(self.enabled_strategies)} strategies!")
 
     def evaluate_signals(self, signals, market_data):

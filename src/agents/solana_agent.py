@@ -16,11 +16,12 @@ from dotenv import load_dotenv
 from termcolor import colored
 import random
 from src.nice_funcs import (
-    token_overview, 
+    token_overview,
     token_security_info,
     token_creation_info,
     token_price
 )
+from src.agents.memory_config import get_memori  # MemoriSDK integration
 
 # Add src directory to Python path
 src_path = str(Path(__file__).parent.parent)
@@ -77,9 +78,15 @@ class SolanaAnalyzer:
         self.api_key = os.getenv('MOONDEV_API_KEY')
         self.headers = {'X-API-Key': self.api_key} if self.api_key else {}
         self.session = requests.Session()
-        
+
         # Create data directory if it doesn't exist
         (DATA_FOLDER / "solana_agent").mkdir(parents=True, exist_ok=True)
+
+        # MemoriSDK integration - individual memory for Solana token analysis
+        self.memori = get_memori('trading', custom_db_path='./src/data/memory/solana_agent.db')
+        if self.memori:
+            self.memori.enable()
+            console.print("🧠 Solana trading memory enabled!", style="green")
         
     def analyze_token(self, token_address):
         """Analyze a single token using Moon Dev's criteria"""

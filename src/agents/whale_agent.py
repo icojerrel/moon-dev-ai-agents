@@ -27,6 +27,7 @@ from src import nice_funcs_hl as hl  # Add import for hyperliquid functions
 from src.agents.api import MoonDevAPI
 from collections import deque
 from src.agents.base_agent import BaseAgent
+from src.agents.memory_config import get_memori  # MemoriSDK integration
 import traceback
 import numpy as np
 import anthropic
@@ -135,7 +136,13 @@ class WhaleAgent(BaseAgent):
         # Initialize or load historical data
         self.history_file = self.data_dir / "oi_history.csv"
         self.load_history()
-        
+
+        # MemoriSDK integration - shared memory with sentiment and funding agents
+        self.memori = get_memori('market_analysis')
+        if self.memori:
+            self.memori.enable()
+            cprint("🧠 Whale tracking memory enabled (shared with sentiment/funding agents)!", "green")
+
         print("🐋 Dez the Whale Agent initialized!")
         
     def load_history(self):

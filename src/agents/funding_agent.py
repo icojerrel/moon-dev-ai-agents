@@ -30,6 +30,7 @@ from src import nice_funcs_hl as hl
 from src.agents.api import MoonDevAPI
 from collections import deque
 from src.agents.base_agent import BaseAgent
+from src.agents.memory_config import get_memori  # MemoriSDK integration
 import traceback
 import numpy as np
 import re
@@ -142,7 +143,13 @@ class FundingAgent(BaseAgent):
         # Initialize or load historical data
         self.history_file = self.data_dir / "funding_history.csv"
         self.load_history()
-        
+
+        # MemoriSDK integration - shared memory with sentiment and whale agents
+        self.memori = get_memori('market_analysis')
+        if self.memori:
+            self.memori.enable()
+            cprint("🧠 Funding rate memory enabled (shared with sentiment/whale agents)!", "green")
+
         print("💰 Fran the Funding Agent initialized!")
         print(f"🎯 Alerting on funding rates: below {NEGATIVE_THRESHOLD}% or above {POSITIVE_THRESHOLD}%")
         print(f"📊 Analyzing {LOOKBACK_BARS} {TIMEFRAME} candles for context")

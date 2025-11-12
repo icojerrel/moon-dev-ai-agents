@@ -21,6 +21,7 @@ import time
 from src.config import *
 from src import nice_funcs as n
 from src.data.ohlcv_collector import collect_all_tokens, collect_token_data
+from src.agents.memory_config import get_memori  # MemoriSDK integration
 
 # Data path for current copybot portfolio
 COPYBOT_PORTFOLIO_PATH = '/Users/md/Dropbox/dev/github/solana-copy-trader/csvs/current_portfolio.csv'
@@ -70,6 +71,13 @@ class CopyBotAgent:
         load_dotenv()
         self.client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_KEY"))
         self.recommendations_df = pd.DataFrame(columns=['token', 'action', 'confidence', 'reasoning'])
+
+        # MemoriSDK integration - individual memory for copy trading strategies
+        self.memori = get_memori('trading', custom_db_path='./src/data/memory/copybot_agent.db')
+        if self.memori:
+            self.memori.enable()
+            cprint("🧠 CopyBot trading memory enabled!", "green")
+
         print("🤖 Moon Dev's CopyBot Agent initialized!")
         
     def load_portfolio_data(self):

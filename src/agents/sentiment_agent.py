@@ -44,6 +44,7 @@ from transformers import AutoTokenizer, AutoModelForSequenceClassification
 import numpy as np
 import openai
 from pathlib import Path
+from src.agents.memory_config import get_memori  # MemoriSDK integration
 
 # Create data directory if it doesn't exist
 pathlib.Path(DATA_FOLDER).mkdir(parents=True, exist_ok=True)
@@ -110,7 +111,13 @@ class SentimentAgent:
         # Load the sentiment model at initialization
         cprint("🤖 Loading sentiment model...", "cyan")
         self.init_sentiment_model()
-            
+
+        # MemoriSDK integration - shared memory with whale and funding agents
+        self.memori = get_memori('market_analysis')
+        if self.memori:
+            self.memori.enable()
+            cprint("🧠 Sentiment analysis memory enabled (shared with whale/funding agents)!", "green")
+
         cprint("🌙 Moon Dev's Sentiment Agent initialized!", "green")
         
     def init_sentiment_model(self):
