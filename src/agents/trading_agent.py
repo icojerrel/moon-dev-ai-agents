@@ -105,6 +105,7 @@ from src.config import *
 from src import nice_funcs as n
 from src.data.ohlcv_collector import collect_all_tokens
 from src.models.model_factory import model_factory
+from src.agents.memory_config import get_memori  # MemoriSDK integration
 
 # Load environment variables
 load_dotenv()
@@ -123,6 +124,12 @@ class TradingAgent:
             sys.exit(1)
 
         cprint(f"✅ Using model: {self.model.model_name}", "green")
+
+        # MemoriSDK integration for trading memory (combined mode for critical decisions)
+        self.memori = get_memori('trading')
+        if self.memori:
+            self.memori.enable()
+            cprint("🧠 Trading memory enabled with MemoriSDK (combined mode)!", "green")
 
         self.recommendations_df = pd.DataFrame(columns=['token', 'action', 'confidence', 'reasoning'])
         cprint("🤖 Moon Dev's LLM Trading Agent initialized!", "green")

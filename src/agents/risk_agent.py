@@ -55,6 +55,7 @@ from datetime import datetime, timedelta
 import time
 from src.config import *
 from src.agents.base_agent import BaseAgent
+from src.agents.memory_config import get_memori  # MemoriSDK integration
 import traceback
 
 # Load environment variables
@@ -104,7 +105,13 @@ class RiskAgent(BaseAgent):
             
         # Initialize Anthropic client
         self.client = anthropic.Anthropic(api_key=anthropic_key)
-        
+
+        # MemoriSDK integration for risk management memory (conscious mode)
+        self.memori = get_memori('risk')
+        if self.memori:
+            self.memori.enable()
+            cprint("🧠 Risk management memory enabled with MemoriSDK (conscious mode)!", "green")
+
         self.override_active = False
         self.last_override_check = None
         

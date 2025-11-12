@@ -1,47 +1,77 @@
-# 🌙 Moon Dev's Compliance Agent Requirements 🌙
-# Created with ❤️ by Moon Dev's AI Assistant
-
-# Core dependencies
-numpy>=1.24.0
-opencv-python>=4.8.0
-whisper>=1.1.10
-openai>=1.51.0
-anthropic>=0.5.0
-groq>=0.4.0
-# google-generativeai>=0.3.0  # Temporarily disabled due to protobuf conflict
-# To re-enable Gemini, uncomment above and ensure compatible versions:
-# google-generativeai==0.8.3
-# protobuf==4.25.1  
-# proto-plus==1.25.0
-termcolor>=2.3.0
-python-dotenv>=1.0.0
-pathlib>=1.0.1
-
-# For transcription
-openai-whisper>=20231117
-ffmpeg-python>=0.2.0
-
-# For image processing
-pillow>=10.0.0
-
-# For API access
-requests>=2.31.0
-
-# For data handling
-pandas>=2.0.0
-
-# For progress bars and arXiv paper downloader
-# Updated by Moon Dev's AI Assistant on arXiv downloader project
-tqdm>=4.66.0
-
-backtesting>=0.3.3
-ta-lib>=0.4.0
-PyPDF2>=3.0.0
-youtube-transcript-api>=0.6.2
-pandas-ta>=0.3.14b0
-
-# MetaTrader 5 Integration
-MetaTrader5>=5.0.45
-
-# Production Utilities
-psutil>=5.9.0  # System monitoring
+aiohappyeyeballs==2.6.1
+aiohttp==3.13.2
+aiosignal==1.4.0
+annotated-types==0.7.0
+anyio==4.11.0
+argcomplete==3.1.4
+attrs==25.4.0
+blinker==1.7.0
+certifi==2025.10.5
+charset-normalizer==3.4.4
+click==8.3.0
+colorama==0.4.6
+conan==2.22.1
+cryptography==41.0.7
+dbus-python==1.3.2
+distro==1.8.0
+fasteners==0.20
+fastuuid==0.14.0
+filelock==3.20.0
+frozenlist==1.8.0
+fsspec==2025.10.0
+greenlet==3.2.4
+h11==0.16.0
+hf-xet==1.2.0
+httpcore==1.0.9
+httplib2==0.20.4
+httpx==0.28.1
+huggingface_hub==1.1.2
+idna==3.11
+importlib_metadata==8.7.0
+Jinja2==3.1.6
+jiter==0.12.0
+jsonschema==4.25.1
+jsonschema-specifications==2025.9.1
+launchpadlib==1.11.0
+lazr.restfulclient==0.14.6
+lazr.uri==1.0.6
+litellm==1.79.3
+loguru==0.7.3
+MarkupSafe==3.0.3
+memorisdk==2.3.2
+multidict==6.7.0
+oauthlib==3.2.2
+openai==2.7.2
+packaging==24.0
+patch-ng==1.18.1
+propcache==0.4.1
+pydantic==2.12.4
+pydantic_core==2.41.5
+PyGObject==3.48.2
+PyJWT==2.7.0
+pyparsing==3.1.1
+python-apt==2.7.7+ubuntu5
+python-dateutil==2.9.0.post0
+python-dotenv==1.2.1
+PyYAML==6.0.1
+referencing==0.37.0
+regex==2025.11.3
+requests==2.32.5
+rpds-py==0.28.0
+shellingham==1.5.4
+six==1.16.0
+sniffio==1.3.1
+SQLAlchemy==2.0.44
+tiktoken==0.12.0
+tokenizers==0.22.1
+toml==0.10.2
+tqdm==4.67.1
+typer-slim==0.20.0
+typing-inspection==0.4.2
+typing_extensions==4.15.0
+urllib3==2.5.0
+wadllib==1.3.6
+xmltodict==0.13.0
+yarl==1.22.0
+yq==3.1.0
+zipp==3.23.0

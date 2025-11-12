@@ -20,6 +20,7 @@ from dotenv import load_dotenv
 import pandas as pd
 from src.config import *
 # from src.models import model_factory  # Removed - no AI needed
+from src.agents.memory_config import get_memori  # MemoriSDK integration
 import json
 import threading
 import random
@@ -350,7 +351,13 @@ class ChatAgent:
         self.restream_handler.set_chat_agent(self)
         self.restream_handler.connect()
         cprint("🎮 Restream chat integration enabled!", "green")
-        
+
+        # MemoriSDK integration for persistent memory
+        self.memori = get_memori('chat')
+        if self.memori:
+            self.memori.enable()
+            cprint("🧠 Persistent memory enabled with MemoriSDK!", "green")
+
         cprint("🎯 Moon Dev's Chat Agent initialized!", "green")
         
         # Add tracking for 777 counts
