@@ -1,0 +1,107 @@
+
+================================================================================
+MEMORISDK INTEGRATION TEST REPORT
+================================================================================
+Date: 2025-11-12 07:38:35
+Test Suite: Phase 1 + Phase 2 Validation
+================================================================================
+
+
+================================================================================
+TEST SUMMARY
+================================================================================
+Total Tests: 32
+✅ Passed: 29
+❌ Failed: 2
+⏭️  Skipped: 1
+⏱️  Duration: 9.86 seconds
+
+Pass Rate: 90.6%
+================================================================================
+
+
+DETAILED RESULTS:
+================================================================================
+
+❌ Conda environment
+   Not in 'tflow' environment (current: none)
+❌ MemoriSDK installation
+   MemoriSDK not installed. Run: pip install memorisdk
+✅ Memory directory
+   Exists at /home/user/moon-dev-ai-agents/src/data/memory
+✅ Unit test suite
+   All 7 tests passed
+✅ Import Chat agent
+   Module imports successfully
+✅ Import Trading agent
+   Module imports successfully
+✅ Import Risk agent
+   Module imports successfully
+✅ Import Sentiment agent
+   Module imports successfully
+✅ Import Whale agent
+   Module imports successfully
+✅ Import Funding agent
+   Module imports successfully
+✅ Import Strategy agent
+   Module imports successfully
+✅ Import Tweet agent
+   Module imports successfully
+✅ Import CopyBot agent
+   Module imports successfully
+✅ Import Solana agent
+   Module imports successfully
+✅ Import memory_config
+   Module imports successfully
+✅ MemoriSDK availability
+   SDK detected in memory_config
+✅ Config 'chat'
+   Mode: auto
+✅ Config 'trading'
+   Mode: combined
+✅ Config 'risk'
+   Mode: conscious
+✅ Config 'market_analysis'
+   Mode: auto
+✅ Config 'strategy'
+   Mode: auto
+✅ Config 'content'
+   Mode: auto
+✅ get_memori disable flag
+   Returns None when disabled
+✅ Memory directory writable
+   Can write to /home/user/moon-dev-ai-agents/src/data/memory
+✅ Existing databases
+   Found 5 database(s)
+⏭️  Graceful degradation
+   MemoriSDK is installed (cannot test degradation)
+✅ Doc: Quick start guide
+   MEMORISDK_QUICKSTART.md (6.2 KB)
+✅ Doc: Integration plan
+   MEMORISDK_INTEGRATION_PLAN.md (9.5 KB)
+✅ Doc: Implementation notes
+   MEMORISDK_IMPLEMENTATION_NOTES.md (9.8 KB)
+✅ Doc: Phase 2 summary
+   PHASE2_COMPLETE_SUMMARY.md (17.6 KB)
+✅ Doc: Claude instructions
+   CLAUDE.md (11.6 KB)
+✅ Doc: Main documentation
+   README.md (18.2 KB)
+
+================================================================================
+RECOMMENDATIONS:
+================================================================================
+
+⚠️  2 TEST(S) FAILED
+
+NEXT STEPS:
+1. Review failed tests above
+2. Fix issues
+3. Re-run this test suite
+4. Do NOT proceed to Phase 3 until all tests pass
+
+STATUS: Needs fixes before merge ❌
+
+================================================================================
+END OF REPORT
+================================================================================

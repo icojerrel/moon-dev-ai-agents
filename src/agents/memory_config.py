@@ -22,7 +22,7 @@ from loguru import logger
 
 # Conditional import - gracefully handle if memorisdk not installed
 try:
-    from memorisdk import Memori
+    from memori import Memori
     MEMORISDK_AVAILABLE = True
 except ImportError:
     logger.warning("MemoriSDK not installed. Run: pip install memorisdk")
@@ -154,10 +154,23 @@ def get_memori(
         logger.info(f"  → Shared memory pool: {config['description']}")
 
     try:
+        # Convert db_path to SQLite connection string
+        if not db_path.startswith('sqlite:///'):
+            # Ensure absolute path
+            if not os.path.isabs(db_path):
+                db_path = os.path.abspath(db_path)
+            db_path = f"sqlite:///{db_path}"
+
+        # Map mode to conscious_ingest and auto_ingest parameters
+        conscious_ingest = memory_mode in ['conscious', 'combined']
+        auto_ingest = memory_mode in ['auto', 'combined']
+
         # Create Memori instance
         memori = Memori(
-            mode=memory_mode,
-            db_path=db_path
+            database_connect=db_path,
+            conscious_ingest=conscious_ingest,
+            auto_ingest=auto_ingest,
+            shared_memory=config.get('shared', False)
         )
 
         logger.success(f"Memory initialized for {agent_type}")
