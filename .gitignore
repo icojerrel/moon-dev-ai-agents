@@ -166,3 +166,8 @@ src/data/chat_agent/*.mov
 
 # Video Agent - Sora 2 generated videos
 src/data/video_agent/
+
+# Memory Layer - Runtime data
+src/data/memory/*.json
+src/data/memory/*.db
+src/data/memory/*.sqlite

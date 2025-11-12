@@ -264,3 +264,12 @@ EXIT_ALL_POSITIONS = False
 DO_NOT_TRADE_LIST = ['777']
 CLOSED_POSITIONS_TXT = '777'
 minimum_trades_in_last_hour = 777
+
+# Memory Layer Settings 🧠
+# Persistent memory for AI agents using mem-layer
+MEMORY_ENABLED = True  # Enable persistent memory across agent sessions
+MEMORY_SCOPE = "trading"  # Default memory scope (trading, research, content, personal)
+MEMORY_AUTO_SAVE = True  # Auto-save memory after each agent run
+MEMORY_RECALL_LIMIT = 10  # Number of past memories to recall for context
+MEMORY_IMPORTANCE_THRESHOLD = 0.7  # Minimum importance score to retain long-term (0-1)
+MEMORY_EXPORT_INTERVAL = 24  # Export memory backup every N hours (0 = disabled)
