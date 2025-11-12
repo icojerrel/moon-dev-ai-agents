@@ -111,10 +111,40 @@ python src/agents/trading_agent.py
 # Look for: "🧠 Trading memory enabled with MemoriSDK!"
 ```
 
+**Memory Analytics & Management** (Phase 3):
+```bash
+# View system summary
+python src/agents/memory_cli.py summary
+
+# Query agent memories
+python src/agents/memory_cli.py query trading_agent SOL
+
+# Search across all agents
+python src/agents/memory_cli.py search BTC
+
+# Export for analysis
+python src/agents/memory_cli.py export trading_agent backup.json
+
+# Optimize databases
+python src/agents/memory_cli.py optimize trading_agent
+```
+
+**Programmatic Access**:
+```python
+from src.agents.memory_analytics import MemoryAnalytics
+
+analytics = MemoryAnalytics()
+results = analytics.query_memory('trading_agent', 'SOL', days_back=7)
+stats = analytics.get_all_stats()
+analytics.export_memory('trading_agent', 'backup.json')
+```
+
 **Documentation**:
 - Quick Start: `MEMORISDK_QUICKSTART.md`
 - Full Guide: `MEMORISDK_INTEGRATION_PLAN.md`
 - Phase 2 Summary: `PHASE2_COMPLETE_SUMMARY.md`
+- Phase 3 Summary: `PHASE3_IMPLEMENTATION_SUMMARY.md`
+- Test Results: `MEMORISDK_TEST_RESULTS.md`
 - Implementation Notes: `MEMORISDK_IMPLEMENTATION_NOTES.md`
 
 ### LLM Integration (Model Factory)
