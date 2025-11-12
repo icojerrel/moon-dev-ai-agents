@@ -333,6 +333,18 @@ import requests
 from io import BytesIO
 import openai
 from termcolor import cprint
+
+# Memory Layer Integration 🧠
+try:
+    from src.memory_manager import get_research_memory
+    from src.config import MEMORY_ENABLED
+    from mem_layer import NodeType, EdgeType
+    MEMORY_AVAILABLE = True
+except ImportError:
+    MEMORY_AVAILABLE = False
+    NodeType = None
+    EdgeType = None
+    print("⚠️  Memory layer not available - running without memory")
 try:
     from anthropic import Anthropic
 except ImportError:
@@ -845,6 +857,163 @@ def get_idea_content(idea_url: str) -> str:
         print(f"❌ Error extracting content: {str(e)}")
         raise
 
+# ============================================================================
+# Memory Layer Functions 🧠
+# ============================================================================
+
+def get_rbi_memory():
+    """Get or create RBI memory manager"""
+    if MEMORY_AVAILABLE and MEMORY_ENABLED:
+        return get_research_memory()
+    return None
+
+def remember_strategy_research(memory, strategy_name: str, idea_source: str,
+                               strategy_description: str, success: bool = True):
+    """Remember a strategy research event"""
+    if not memory or not NodeType:
+        return None
+
+    try:
+        node = memory.api.create_node(
+            type=NodeType.ENTITY,
+            content=f"Strategy Research: {strategy_name}",
+            tags=["rbi", "research", "strategy", strategy_name],
+            importance=0.85 if success else 0.6,
+            metadata={
+                "strategy_name": strategy_name,
+                "idea_source": idea_source[:200],  # Truncate long sources
+                "description": strategy_description[:500],
+                "success": success,
+                "phase": "research",
+                "timestamp": datetime.now().isoformat()
+            }
+        )
+        cprint(f"💾 Remembered strategy research: {strategy_name}", "green")
+        return node.id
+    except Exception as e:
+        cprint(f"⚠️  Failed to save research memory: {e}", "yellow")
+        return None
+
+def remember_backtest_result(memory, strategy_name: str, success: bool,
+                            error_msg: str = None, code_length: int = 0):
+    """Remember a backtest creation result"""
+    if not memory or not NodeType:
+        return None
+
+    try:
+        node = memory.api.create_node(
+            type=NodeType.EVENT,
+            content=f"Backtest {'Created' if success else 'Failed'}: {strategy_name}",
+            tags=["rbi", "backtest", strategy_name, "success" if success else "failed"],
+            importance=0.9 if success else 0.7,
+            metadata={
+                "strategy_name": strategy_name,
+                "success": success,
+                "error": error_msg if error_msg else "None",
+                "code_length": code_length,
+                "phase": "backtest",
+                "timestamp": datetime.now().isoformat()
+            }
+        )
+        cprint(f"💾 Remembered backtest result: {strategy_name} ({'✓' if success else '✗'})", "green")
+        return node.id
+    except Exception as e:
+        cprint(f"⚠️  Failed to save backtest memory: {e}", "yellow")
+        return None
+
+def remember_rbi_learning(memory, strategy_name: str, lesson: str,
+                         category: str = "general"):
+    """Remember a learning from RBI process"""
+    if not memory:
+        return None
+
+    try:
+        node_id = memory.add_agent_note(
+            agent_name="RBI_Agent",
+            content=f"[{strategy_name}] {lesson}",
+            priority="high",
+            category=category,
+            strategy=strategy_name
+        )
+        cprint(f"💡 Remembered learning: {lesson[:50]}...", "cyan")
+        return node_id
+    except Exception as e:
+        cprint(f"⚠️  Failed to save learning memory: {e}", "yellow")
+        return None
+
+def recall_similar_strategies(memory, strategy_description: str, limit: int = 5):
+    """Recall similar strategies from memory"""
+    if not memory:
+        return []
+
+    try:
+        # Search for similar strategies
+        results = memory.search_memories(strategy_description, limit=limit)
+
+        if results:
+            cprint(f"\n📚 Found {len(results)} similar strategies in memory:", "cyan")
+            for i, result in enumerate(results, 1):
+                content = result.get('content', '')
+                tags = result.get('tags', [])
+                print(f"  {i}. {content[:60]}... (tags: {', '.join(tags[:3])})")
+
+        return results
+    except Exception as e:
+        cprint(f"⚠️  Failed to recall similar strategies: {e}", "yellow")
+        return []
+
+def get_rbi_context(memory, strategy_name: str = None):
+    """Get relevant RBI context from memory"""
+    if not memory:
+        return None
+
+    try:
+        context = {
+            "recent_strategies": [],
+            "successful_backtests": [],
+            "common_errors": [],
+            "learnings": []
+        }
+
+        # Get recent strategies
+        recent = memory.query("tags:rbi AND tags:research")
+        if hasattr(recent, 'nodes'):
+            context["recent_strategies"] = [
+                {
+                    "name": n.metadata.get("strategy_name", "Unknown"),
+                    "success": n.metadata.get("success", False)
+                }
+                for n in recent.nodes[:5]
+            ]
+
+        # Get successful backtests
+        successful = memory.query("tags:rbi AND tags:backtest AND tags:success")
+        if hasattr(successful, 'nodes'):
+            context["successful_backtests"] = [
+                n.metadata.get("strategy_name", "Unknown")
+                for n in successful.nodes[:5]
+            ]
+
+        # Get learnings
+        learnings = memory.query("tags:agent_note AND tags:RBI_Agent")
+        if hasattr(learnings, 'nodes'):
+            context["learnings"] = [
+                {
+                    "content": n.content,
+                    "category": n.metadata.get("category", "general")
+                }
+                for n in learnings.nodes[:5]
+            ]
+
+        return context
+    except Exception as e:
+        cprint(f"⚠️  Failed to get RBI context: {e}", "yellow")
+        return None
+
+# ============================================================================
+# Original Functions
+# ============================================================================
+
 def get_idea_hash(idea: str) -> str:
     """Generate a unique hash for an idea to track processing status"""
     # Create a hash of the idea to use as a unique identifier
@@ -888,29 +1057,59 @@ def process_trading_idea(idea: str) -> None:
     print("🌟 Let's find some alpha in the chaos!")
     print(f"📝 Processing idea: {idea[:100]}...")
     print(f"📅 Saving results to today's folder: {TODAY_DATE}")
-    
+
+    # Initialize memory
+    memory = get_rbi_memory()
+    if memory:
+        cprint("🧠 Memory layer active - will remember this session!", "cyan")
+        # Get context from past RBI sessions
+        context = get_rbi_context(memory)
+        if context and context.get("recent_strategies"):
+            cprint(f"📚 Recalled {len(context['recent_strategies'])} recent strategies from memory", "cyan")
+
     try:
         # Step 1: Extract content from the idea
         idea_content = get_idea_content(idea)
         if not idea_content:
             print("❌ Failed to extract content from idea!")
             return
-            
+
         print(f"📄 Extracted content length: {len(idea_content)} characters")
+
+        # Check for similar strategies in memory
+        if memory:
+            similar = recall_similar_strategies(memory, idea_content[:500], limit=3)
         
         # Phase 1: Research with isolated content
         print("\n🧪 Phase 1: Research")
         strategy, strategy_name = research_strategy(idea_content)
-        
+
         if not strategy:
             print("❌ Research phase failed!")
+            if memory:
+                remember_rbi_learning(
+                    memory, "Unknown",
+                    "Research phase failed - content extraction might be incomplete",
+                    category="error"
+                )
             return
-            
+
         print(f"🏷️ Strategy Name: {strategy_name}")
-        
+
+        # Remember the strategy research in memory
+        research_id = None
+        if memory:
+            research_id = remember_strategy_research(
+                memory,
+                strategy_name=strategy_name,
+                idea_source=idea[:200],
+                strategy_description=strategy[:500],
+                success=True
+            )
+
         # Log the idea as processed once we have a strategy name
         log_processed_idea(idea, strategy_name)
-        
+
         # Save research output
         research_file = RESEARCH_DIR / f"{strategy_name}_strategy.txt"
         with open(research_file, 'w') as f:
@@ -919,11 +1118,40 @@ def process_trading_idea(idea: str) -> None:
         # Phase 2: Backtest using only the research output
         print("\n📈 Phase 2: Backtest")
         backtest = create_backtest(strategy, strategy_name)
-        
+
+        backtest_id = None
         if not backtest:
             print("❌ Backtest phase failed!")
+            if memory:
+                backtest_id = remember_backtest_result(
+                    memory,
+                    strategy_name=strategy_name,
+                    success=False,
+                    error_msg="Backtest creation failed",
+                    code_length=0
+                )
+                remember_rbi_learning(
+                    memory, strategy_name,
+                    "Backtest generation failed - strategy description might need more detail",
+                    category="error"
+                )
             return
-            
+
+        # Remember successful backtest
+        if memory:
+            backtest_id = remember_backtest_result(
+                memory,
+                strategy_name=strategy_name,
+                success=True,
+                code_length=len(backtest)
+            )
+            # Link backtest to research
+            if research_id and backtest_id:
+                try:
+                    memory.link_memories(research_id, backtest_id, "TEMPORAL_SEQUENCE")
+                except Exception as e:
+                    cprint(f"⚠️  Failed to link memories: {e}", "yellow")
+
         # Save backtest output
         backtest_file = BACKTEST_DIR / f"{strategy_name}_BT.py"
         with open(backtest_file, 'w') as f:
@@ -954,13 +1182,64 @@ def process_trading_idea(idea: str) -> None:
         final_file = FINAL_BACKTEST_DIR / f"{strategy_name}_BTFinal.py"
         with open(final_file, 'w') as f:
             f.write(final_backtest)
-            
+
+        # Remember final success
+        final_id = None
+        if memory and NodeType:
+            try:
+                node = memory.api.create_node(
+                    type=NodeType.EVENT,
+                    content=f"Strategy Complete: {strategy_name}",
+                    tags=["rbi", "complete", "success", strategy_name],
+                    importance=0.95,
+                    metadata={
+                        "strategy_name": strategy_name,
+                        "final_file": str(final_file),
+                        "code_length": len(final_backtest),
+                        "all_phases_complete": True,
+                        "timestamp": datetime.now().isoformat()
+                    }
+                )
+                final_id = node.id
+            except Exception as e:
+                cprint(f"⚠️  Failed to save final memory: {e}", "yellow")
+            # Link to backtest
+            if backtest_id and final_id:
+                try:
+                    memory.link_memories(backtest_id, final_id, "TEMPORAL_SEQUENCE")
+                except Exception:
+                    pass
+
+            # Add a learning about what worked
+            remember_rbi_learning(
+                memory, strategy_name,
+                f"Successfully completed full RBI cycle for {strategy_name}",
+                category="success"
+            )
+
+            # Export memory snapshot
+            try:
+                export_path = memory.export_memory()
+                cprint(f"💾 Memory exported to: {export_path.name}", "green")
+            except Exception as e:
+                cprint(f"⚠️  Failed to export memory: {e}", "yellow")
+
         print("\n🎉 Mission Accomplished!")
         print(f"🚀 Strategy '{strategy_name}' is ready to make it rain! 💸")
         print(f"✨ Final backtest saved at: {final_file}")
-        
+
     except Exception as e:
         print(f"\n❌ Error processing idea: {str(e)}")
+        # Remember the error
+        if memory and 'strategy_name' in locals():
+            try:
+                remember_rbi_learning(
+                    memory, strategy_name,
+                    f"Error during processing: {str(e)[:200]}",
+                    category="error"
+                )
+            except:
+                pass
         raise
 
 def main():
