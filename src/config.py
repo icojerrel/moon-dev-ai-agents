@@ -98,7 +98,7 @@ MIN_TRADES_LAST_HOUR = 2
 
 # Real-Time Clips Agent Settings 🎬
 REALTIME_CLIPS_ENABLED = True
-REALTIME_CLIPS_OBS_FOLDER = '/Volumes/Moon 26/OBS'  # Your OBS recording folder
+REALTIME_CLIPS_OBS_FOLDER = os.path.expanduser('~/Videos/OBS')  # OBS recording folder (cross-platform)
 REALTIME_CLIPS_AUTO_INTERVAL = 120  # Check every N seconds (120 = 2 minutes)
 REALTIME_CLIPS_LENGTH = 2  # Minutes to analyze per check
 REALTIME_CLIPS_AI_MODEL = 'groq'  # Model type: groq, openai, claude, deepseek, xai, ollama
