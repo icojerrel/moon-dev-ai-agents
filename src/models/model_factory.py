@@ -19,6 +19,7 @@ from .deepseek_model import DeepSeekModel
 from .ollama_model import OllamaModel
 from .xai_model import XAIModel
 from .openrouter_model import OpenRouterModel  # 🌙 Moon Dev: OpenRouter - access to 200+ models!
+from .zai_model import ZAIModel  # 🌙 Moon Dev: Z.AI (Zhipu AI) - GLM models!
 import random
 
 class ModelFactory:
@@ -33,7 +34,8 @@ class ModelFactory:
         "deepseek": DeepSeekModel,
         "ollama": OllamaModel,  # Add Ollama implementation
         "xai": XAIModel,  # xAI Grok models
-        "openrouter": OpenRouterModel  # 🌙 Moon Dev: OpenRouter - 200+ models!
+        "openrouter": OpenRouterModel,  # 🌙 Moon Dev: OpenRouter - 200+ models!
+        "zai": ZAIModel  # 🌙 Moon Dev: Z.AI (Zhipu AI) - GLM models!
     }
     
     # Default models for each type
@@ -45,7 +47,8 @@ class ModelFactory:
         "deepseek": "deepseek-reasoner",     # Enhanced reasoning model
         "ollama": "llama3.2",                # Meta's Llama 3.2 - balanced performance
         "xai": "grok-4-fast-reasoning",      # xAI's Grok 4 Fast with reasoning (best value: 2M context, cheap!)
-        "openrouter": "google/gemini-2.5-flash"  # 🌙 Moon Dev: OpenRouter default - fast & cheap Gemini!
+        "openrouter": "google/gemini-2.5-flash",  # 🌙 Moon Dev: OpenRouter default - fast & cheap Gemini!
+        "zai": "glm-4.6"  # 🌙 Moon Dev: Z.AI default - GLM 4.6 flagship model!
     }
     
     def __init__(self):
@@ -70,7 +73,7 @@ class ModelFactory:
         
         # Debug current environment without exposing values
         cprint("\n🔍 Environment Check:", "cyan")
-        for key in ["GROQ_API_KEY", "OPENAI_KEY", "ANTHROPIC_KEY", "DEEPSEEK_KEY", "GROK_API_KEY", "GEMINI_KEY", "OPENROUTER_API_KEY"]:
+        for key in ["GROQ_API_KEY", "OPENAI_KEY", "ANTHROPIC_KEY", "DEEPSEEK_KEY", "GROK_API_KEY", "GEMINI_KEY", "OPENROUTER_API_KEY", "ZAI_API_KEY"]:
             value = os.getenv(key)
             if value and len(value.strip()) > 0:
                 cprint(f"  ├─ {key}: Found ({len(value)} chars)", "green")
@@ -218,6 +221,7 @@ class ModelFactory:
             "deepseek": "DEEPSEEK_KEY",
             "xai": "GROK_API_KEY",  # Grok/xAI uses GROK_API_KEY
             "openrouter": "OPENROUTER_API_KEY",  # 🌙 Moon Dev: OpenRouter - 200+ models!
+            "zai": "ZAI_API_KEY",  # 🌙 Moon Dev: Z.AI (Zhipu AI) - GLM models!
             # Ollama doesn't need an API key as it runs locally
         }
     
