@@ -118,12 +118,17 @@ class MoonDevAPI:
 
     def _fetch_csv(self, filename, limit=None):
         """Fetch CSV data from the API with retry logic"""
+        # Security: Validate filename to prevent path traversal
+        safe_filename = os.path.basename(filename)
+        if '..' in safe_filename or '/' in safe_filename or '\\' in safe_filename:
+            raise ValueError(f"Invalid filename: {filename}")
+
         max_retries = 3
         retry_delay = 2  # seconds
 
         for attempt in range(max_retries):
             try:
-                url = f'{self.base_url}/files/{filename}'
+                url = f'{self.base_url}/files/{safe_filename}'
                 if limit:
                     url += f'?limit={limit}'
 

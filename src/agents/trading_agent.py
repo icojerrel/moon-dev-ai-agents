@@ -106,26 +106,61 @@ from src import nice_funcs as n
 from src.data.ohlcv_collector import collect_all_tokens
 from src.models.model_factory import model_factory
 
+# Rich logging support (backwards compatible)
+try:
+    from src.utils.rich_logger import (
+        print_panel, print_status, print_trade_result,
+        print_agent_header, setup_logging, console
+    )
+    from src.utils.event_emitter import (
+        emit_trading_event, emit_agent_lifecycle, emit_event, EventType
+    )
+    HAS_RICH_LOGGING = True
+except ImportError:
+    HAS_RICH_LOGGING = False
+    print("⚠️ Rich logging not available - using fallback termcolor")
+
 # Load environment variables
 load_dotenv()
 
 class TradingAgent:
     def __init__(self):
+        # Setup logging (Rich if available, else standard)
+        if HAS_RICH_LOGGING:
+            self.logger = setup_logging("trading_agent")
+            print_agent_header("Trading Agent", "INITIALIZING")
+        else:
+            self.logger = None
+
         # Initialize AI model via model factory
-        cprint(f"\n🤖 Initializing Trading Agent with {AI_MODEL_TYPE} model...", "cyan")
+        if HAS_RICH_LOGGING:
+            print_status(f"🤖 Initializing with {AI_MODEL_TYPE} model...", "info")
+        else:
+            cprint(f"\n🤖 Initializing Trading Agent with {AI_MODEL_TYPE} model...", "cyan")
+
         self.model = model_factory.get_model(AI_MODEL_TYPE, AI_MODEL_NAME)
 
         if not self.model:
-            cprint(f"❌ Failed to initialize {AI_MODEL_TYPE} model!", "red")
-            cprint("Available models:", "yellow")
-            for model_type in model_factory._models.keys():
-                cprint(f"  - {model_type}", "yellow")
+            if HAS_RICH_LOGGING:
+                print_status(f"❌ Failed to initialize {AI_MODEL_TYPE} model!", "error")
+                print_status("Available models:", "warning")
+                for model_type in model_factory._models.keys():
+                    print_status(f"  - {model_type}", "warning")
+            else:
+                cprint(f"❌ Failed to initialize {AI_MODEL_TYPE} model!", "red")
+                cprint("Available models:", "yellow")
+                for model_type in model_factory._models.keys():
+                    cprint(f"  - {model_type}", "yellow")
             sys.exit(1)
 
-        cprint(f"✅ Using model: {self.model.model_name}", "green")
+        if HAS_RICH_LOGGING:
+            print_status(f"✅ Using model: {self.model.model_name}", "success")
+            print_status("🤖 Moon Dev's LLM Trading Agent initialized!", "success")
+        else:
+            cprint(f"✅ Using model: {self.model.model_name}", "green")
+            cprint("🤖 Moon Dev's LLM Trading Agent initialized!", "green")
 
         self.recommendations_df = pd.DataFrame(columns=['token', 'action', 'confidence', 'reasoning'])
-        cprint("🤖 Moon Dev's LLM Trading Agent initialized!", "green")
 
     def chat_with_ai(self, system_prompt, user_content):
         """Send prompt to AI model via model factory"""
@@ -434,12 +469,25 @@ Example format:
 
     def run_trading_cycle(self, strategy_signals=None):
         """Run one complete trading cycle"""
+        start_time = time.time()
+
         try:
             current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            cprint(f"\n⏰ AI Agent Run Starting at {current_time}", "white", "on_green")
-            
+
+            # Emit agent start event
+            if HAS_RICH_LOGGING:
+                emit_agent_lifecycle("trading_agent", "START")
+                print_agent_header("Trading Agent", "RUNNING")
+                print_status(f"⏰ Starting at {current_time}", "info")
+            else:
+                cprint(f"\n⏰ AI Agent Run Starting at {current_time}", "white", "on_green")
+
             # Collect OHLCV data for all tokens
-            cprint("📊 Collecting market data...", "white", "on_blue")
+            if HAS_RICH_LOGGING:
+                print_status("📊 Collecting market data...", "info")
+            else:
+                cprint("📊 Collecting market data...", "white", "on_blue")
+
             market_data = collect_all_tokens()
             
             # Analyze each token's data
@@ -479,18 +527,41 @@ Example format:
                 cprint("\n⚠️ No allocations to execute!", "white", "on_yellow")
             
             # Clean up temp data
-            cprint("\n🧹 Cleaning up temporary data...", "white", "on_blue")
+            if HAS_RICH_LOGGING:
+                print_status("🧹 Cleaning up temporary data...", "info")
+            else:
+                cprint("\n🧹 Cleaning up temporary data...", "white", "on_blue")
+
             try:
                 for file in os.listdir('temp_data'):
                     if file.endswith('_latest.csv'):
                         os.remove(os.path.join('temp_data', file))
-                cprint("✨ Temp data cleaned successfully!", "white", "on_green")
+
+                if HAS_RICH_LOGGING:
+                    print_status("✨ Temp data cleaned successfully!", "success")
+                else:
+                    cprint("✨ Temp data cleaned successfully!", "white", "on_green")
             except Exception as e:
-                cprint(f"⚠️ Error cleaning temp data: {str(e)}", "white", "on_yellow")
-            
+                if HAS_RICH_LOGGING:
+                    print_status(f"⚠️ Error cleaning temp data: {str(e)}", "warning")
+                else:
+                    cprint(f"⚠️ Error cleaning temp data: {str(e)}", "white", "on_yellow")
+
+            # Emit completion event with duration
+            if HAS_RICH_LOGGING:
+                duration = time.time() - start_time
+                emit_agent_lifecycle("trading_agent", "COMPLETE", duration=duration)
+                print_status(f"✅ Trading cycle completed in {duration:.2f} seconds", "success")
+
         except Exception as e:
-            cprint(f"\n❌ Error in trading cycle: {str(e)}", "white", "on_red")
-            cprint("🔧 Moon Dev suggests checking the logs and trying again!", "white", "on_blue")
+            # Emit error event
+            if HAS_RICH_LOGGING:
+                emit_agent_lifecycle("trading_agent", "ERROR", error=str(e))
+                print_status(f"❌ Error in trading cycle: {str(e)}", "error")
+                print_status("🔧 Check logs and try again", "warning")
+            else:
+                cprint(f"\n❌ Error in trading cycle: {str(e)}", "white", "on_red")
+                cprint("🔧 Moon Dev suggests checking the logs and trying again!", "white", "on_blue")
 
 def main():
     """Main function to run the trading agent every 15 minutes"""

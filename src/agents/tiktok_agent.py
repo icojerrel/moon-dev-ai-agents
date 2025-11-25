@@ -88,12 +88,12 @@ Navigates TikTok, captures video and comment screenshots for trading insights
 
 The alpha is in the comments! 💰
 
+Known Issue & Resolution:
+-------------------------
+Previous Issue: Live videos would break the scroll mechanism when double-click activated.
+The double-click was necessary to keep the screen active for scrolling, but would sometimes
+navigate into live video sections after the lives ended.
 
-TODO - 
-- this works great, til it hits a live.... and then the double click takes us to more live.
-the doublclick was to activate the screen to always scroll because it would break sometimes
-but those sometimes were AFTER the lives... so the lives really kill this.... i can 
-probably grab the link... 
 ✅ FIXED: Now detects live videos by checking URL and skips processing them entirely!
 """
 

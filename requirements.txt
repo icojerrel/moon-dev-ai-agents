@@ -45,3 +45,28 @@ MetaTrader5>=5.0.45
 
 # Production Utilities
 psutil>=5.9.0  # System monitoring
+
+# ============================================================================
+# Phase 1 Improvements (from autonomous-researcher integration)
+# Added: 2025-11-25
+# ============================================================================
+
+# Rich Console - Enhanced terminal output with panels, themes, and progress bars
+rich>=13.0.0
+
+# Optional: New Google GenAI library for thinking mode support
+# Uncomment to enable Gemini thinking mode capabilities in gemini_model.py
+# Note: This is a DIFFERENT library than google-generativeai
+# google-genai>=0.1.0
+
+# ============================================================================
+# Future Phase 2/3 Dependencies (commented for now)
+# ============================================================================
+
+# FastAPI Web Dashboard (Phase 3)
+# fastapi>=0.104.0
+# uvicorn[standard]>=0.24.0
+# pydantic>=2.0.0
+
+# Modal GPU Sandboxes (Phase 3)
+# modal>=0.63.0
