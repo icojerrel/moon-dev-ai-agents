@@ -42,6 +42,9 @@ feel free to join [our discord](https://discord.gg/8UPuVZ53bh) if you beleive ai
 - **Swarm Agent** (`swarm_agent.py`): Queries 6 AI models in parallel (Claude 4.5, GPT-5, Gemini 2.5, Grok-4, DeepSeek, DeepSeek-R1 local), generates AI consensus summary, returns clean JSON with model mapping for easy parsing 🐝
 
 ### Market Analysis Agents
+- **QuantAnalysis Agent** (`quantanalysis_agent.py`): 🔬 Multi-agent trading system inspired by QuantAgent research (SBU) - combines 4 specialized agents (Indicator, Pattern, Trend, Decision) for comprehensive market analysis with stop-loss/take-profit recommendations. [See full docs](src/agents/QUANTANALYSIS_README.md)
+- **Volume Agent** (`volume_agent.py`): 📊 Monitors volume of ALL HyperLiquid tokens every 4 hours using swarm intelligence - catch volume spikes BEFORE Crypto Twitter notices! Analyzes top 15 altcoins with AI consensus for early mover advantage
+- **Funding Agent 2** (`funding_agent_2.py`): 💰 Scans ALL HyperLiquid symbols for funding rate anomalies - announces top 5 biggest/smallest rates with AI voice alerts for arbitrage opportunities
 - **Whale Agent** (`whale_agent.py`): Monitors whale activity and announces when a whale enters the market
 - **Sentiment Agent** (`sentiment_agent.py`): Analyzes Twitter sentiment for crypto tokens with voice announcements
 - **Chart Agent** (`chartanalysis_agent.py`): Looks at any crypto chart and analyzes it with AI to make a buy/sell/nothing recommendation
@@ -65,6 +68,7 @@ feel free to join [our discord](https://discord.gg/8UPuVZ53bh) if you beleive ai
 - **Phone Agent** (`phone_agent.py`): An AI agent that can take phone calls for you
 
 ### Specialized Agents
+- **Scraper Agent** (`scraper_agent.py`): 🕷️ Scrapes websites and analyzes them using AI swarms! Batch processing with custom prompts, parallel execution, Selenium headless browser for JavaScript-rendered sites. Unlimited use cases: competitive intelligence, research automation, strategy discovery. [See full docs](docs/scraper_agent.md)
 - **Prompt Agent** (`prompt_agent.py`): 🎯 Interactive prompt enhancement tool that transforms basic prompts into professional, production-ready prompts using best practices from Parahelp & Cursor. Stays open in terminal, continuously ready to enhance your prompts with expert design principles (role-based prompting, structured formatting, explicit thinking order). Auto-saves and copies enhanced prompts. Perfect for improving prompts for any AI task. [See full docs](docs/prompt_agent.md)
 - **Focus Agent** (`focus_agent.py`): Randomly samples audio during coding sessions to maintain productivity, providing focus scores and voice alerts when focus drops (~$10/month, perfect for voice-to-code workflows)
 - **Million Agent** (`million_agent.py`): Uses million context window from Gemini to pull in a knowledge base
