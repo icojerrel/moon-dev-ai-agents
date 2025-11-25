@@ -89,6 +89,14 @@ AI_TEMPERATURE = 0.7  # Creativity vs precision (0-1)
 ENABLE_STRATEGIES = True  # Set this to True to use strategies
 STRATEGY_MIN_CONFIDENCE = 0.7  # Minimum confidence to act on strategy signals
 
+# QuantAnalysis Agent Settings 📊 (Inspired by QuantAgent Research)
+ENABLE_QUANTANALYSIS = True  # Enable QuantAnalysis multi-agent system
+QUANT_MIN_CONFIDENCE = 50  # Minimum confidence to act on quant signals (0-100)
+QUANT_HIGH_CONFIDENCE = 75  # High confidence threshold for stronger conviction trades
+QUANT_TIMEFRAME = '1H'  # Timeframe for analysis: 15m, 1H, 4H, 1D
+QUANT_LOOKBACK_BARS = 100  # Number of candles to fetch for analysis
+QUANT_AGENT_WEIGHT = 0.4  # Weight in final decision (0.0-1.0) when combining with other agents
+
 # Sleep time between main agent runs
 SLEEP_BETWEEN_RUNS_MINUTES = 15  # How long to sleep between agent runs 🕒
 

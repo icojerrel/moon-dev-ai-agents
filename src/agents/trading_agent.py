@@ -146,8 +146,8 @@ class TradingAgent:
             cprint(f"❌ AI model error: {e}", "red")
             return None
 
-    def analyze_market_data(self, token, market_data):
-        """Analyze market data using AI model"""
+    def analyze_market_data(self, token, market_data, quant_signals=None):
+        """Analyze market data using AI model, optionally with QuantAnalysis signals"""
         try:
             # Skip analysis for excluded tokens
             if token in EXCLUDED_TOKENS:
@@ -163,6 +163,27 @@ Strategy Signals Available:
                 """
             else:
                 strategy_context = "No strategy signals available."
+
+            # Add QuantAnalysis signals if available
+            quant_context = ""
+            if quant_signals:
+                quant_context = f"""
+
+QuantAnalysis Multi-Agent Signals (Indicator + Pattern + Trend Analysis):
+Action: {quant_signals.get('action', 'NOTHING')}
+Confidence: {quant_signals.get('confidence', 0)}%
+Position Type: {quant_signals.get('position_type', 'N/A')}
+Reasoning: {quant_signals.get('reasoning', 'N/A')}
+
+Component Analyses:
+- Indicator Agent: {quant_signals.get('component_analyses', {}).get('indicator', {}).get('direction', 'N/A')} (Confidence: {quant_signals.get('component_analyses', {}).get('indicator', {}).get('confidence', 0)}%)
+- Pattern Agent: {quant_signals.get('component_analyses', {}).get('pattern', {}).get('pattern', 'N/A')} - {quant_signals.get('component_analyses', {}).get('pattern', {}).get('direction', 'N/A')} (Confidence: {quant_signals.get('component_analyses', {}).get('pattern', {}).get('confidence', 0)}%)
+- Trend Agent: {quant_signals.get('component_analyses', {}).get('trend', {}).get('direction', 'N/A')} - {quant_signals.get('component_analyses', {}).get('trend', {}).get('strength', 'N/A')} (Confidence: {quant_signals.get('component_analyses', {}).get('trend', {}).get('confidence', 0)}%)
+
+Stop Loss: {quant_signals.get('stop_loss', 'N/A')}
+Take Profit: {quant_signals.get('take_profit', 'N/A')}
+                """
+                strategy_context += quant_context
 
             # Call AI model via model factory
             response = self.chat_with_ai(

@@ -21,17 +21,19 @@ from src.agents.risk_agent import RiskAgent
 from src.agents.strategy_agent import StrategyAgent
 from src.agents.copybot_agent import CopyBotAgent
 from src.agents.sentiment_agent import SentimentAgent
+from src.agents.quantanalysis_agent import QuantAnalysisAgent
 
 # Load environment variables
 load_dotenv()
 
 # Agent Configuration
 ACTIVE_AGENTS = {
-    'risk': False,      # Risk management agent
-    'trading': False,   # LLM trading agent
-    'strategy': False,  # Strategy-based trading agent
-    'copybot': False,   # CopyBot agent
-    'sentiment': False, # Run sentiment_agent.py directly instead
+    'risk': False,         # Risk management agent
+    'trading': False,      # LLM trading agent
+    'strategy': False,     # Strategy-based trading agent
+    'copybot': False,      # CopyBot agent
+    'sentiment': False,    # Run sentiment_agent.py directly instead
+    'quantanalysis': False, # QuantAnalysis multi-agent system (Indicator + Pattern + Trend)
     # whale_agent is run from whale_agent.py
     # Add more agents here as we build them:
     # 'portfolio': False,  # Future portfolio optimization agent
@@ -46,6 +48,7 @@ def run_agents():
         strategy_agent = StrategyAgent() if ACTIVE_AGENTS['strategy'] else None
         copybot_agent = CopyBotAgent() if ACTIVE_AGENTS['copybot'] else None
         sentiment_agent = SentimentAgent() if ACTIVE_AGENTS['sentiment'] else None
+        quantanalysis_agent = QuantAnalysisAgent() if ACTIVE_AGENTS['quantanalysis'] else None
 
         while True:
             try:
@@ -76,6 +79,22 @@ def run_agents():
                 if sentiment_agent:
                     cprint("\n🎭 Running Sentiment Analysis...", "cyan")
                     sentiment_agent.run()
+
+                # Run QuantAnalysis (Multi-Agent System)
+                if quantanalysis_agent:
+                    cprint("\n📊 Running QuantAnalysis (Indicator + Pattern + Trend)...", "cyan")
+                    for token in MONITORED_TOKENS:
+                        if token not in EXCLUDED_TOKENS:
+                            try:
+                                cprint(f"\n🔬 QuantAnalyzing {token}...", "cyan")
+                                analysis = quantanalysis_agent.analyze(token,
+                                                                       timeframe=QUANT_TIMEFRAME,
+                                                                       bars=QUANT_LOOKBACK_BARS)
+                                if analysis and analysis['action'] != 'NOTHING':
+                                    cprint(f"🎯 QuantAnalysis Signal: {analysis['action']} "
+                                          f"(Confidence: {analysis['confidence']}%)", "green")
+                            except Exception as e:
+                                cprint(f"⚠️ QuantAnalysis error for {token}: {str(e)}", "yellow")
 
                 # Sleep until next cycle
                 next_run = datetime.now() + timedelta(minutes=SLEEP_BETWEEN_RUNS_MINUTES)
