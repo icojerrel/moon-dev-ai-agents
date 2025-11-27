@@ -28,8 +28,19 @@ MONITORED_TOKENS = [
 tokens_to_trade = MONITORED_TOKENS  # Using the same list for trading
 
 # Token and wallet settings
-symbol = '9BB6NFEcjBCtnNLFko2FqVQBq8HHM13kCyYcdQbgpump'
-address = '4wgfCBf2WwLSRKLef9iW7JXZ2AfkxUxGM4XcKpHm3Sin' # YOUR WALLET ADDRESS HERE
+# 🔒 SECURITY: Moved to environment variables - never commit wallet addresses
+import os
+from dotenv import load_dotenv
+load_dotenv()
+
+symbol = os.getenv('DEFAULT_TOKEN_SYMBOL', '9BB6NFEcjBCtnNLFko2FqVQBq8HHM13kCyYcdQbgpump')
+address = os.getenv('WALLET_ADDRESS')  # REQUIRED: Set in .env file
+
+# Validate wallet address is set
+if not address:
+    from termcolor import cprint
+    cprint("⚠️ WARNING: WALLET_ADDRESS not set in .env file!", "red")
+    cprint("   Please add: WALLET_ADDRESS=your_wallet_address_here", "yellow")
 
 # Position sizing 🎯
 usd_size = 25  # Size of position to hold

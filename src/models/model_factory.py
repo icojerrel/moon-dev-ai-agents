@@ -69,13 +69,14 @@ class ModelFactory:
         cprint("═" * 50, "cyan")
         
         # Debug current environment without exposing values
+        # 🔒 SECURITY: Never log key lengths or any key information
         cprint("\n🔍 Environment Check:", "cyan")
         for key in ["GROQ_API_KEY", "OPENAI_KEY", "ANTHROPIC_KEY", "DEEPSEEK_KEY", "GROK_API_KEY", "GEMINI_KEY", "OPENROUTER_API_KEY"]:
             value = os.getenv(key)
             if value and len(value.strip()) > 0:
-                cprint(f"  ├─ {key}: Found ({len(value)} chars)", "green")
+                cprint(f"  ├─ {key}: ✓ Found", "green")
             else:
-                cprint(f"  ├─ {key}: Not found or empty", "red")
+                cprint(f"  ├─ {key}: ✗ Not found", "red")
         
         # Try to initialize each model type
         for model_type, key_name in self._get_api_key_mapping().items():
@@ -84,7 +85,8 @@ class ModelFactory:
             
             if api_key := os.getenv(key_name):
                 try:
-                    cprint(f"  ├─ Found {key_name} ({len(api_key)} chars)", "green")
+                    # 🔒 SECURITY: Never log key information
+                    cprint(f"  ├─ Found {key_name}", "green")
                     cprint(f"  ├─ Getting model class for {model_type}...", "cyan")
                     
                     if model_type not in self.MODEL_IMPLEMENTATIONS:
