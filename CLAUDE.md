@@ -79,10 +79,11 @@ moon-dev-ai-agents/
 │   ├── config.py            # Global configuration (positions, risk limits, API settings)
 │   ├── main.py              # Main orchestrator for multi-agent loop
 │   ├── nice_funcs.py        # 1,178 lines of shared trading utilities
-│   ├── nice_funcs_hl.py     # 378 lines Hyperliquid-specific utilities
+│   ├── nice_funcs_hyperliquid.py  # HyperLiquid-specific utilities
+│   ├── nice_funcs_hl.py     # Backwards compatibility alias for nice_funcs_hyperliquid
 │   ├── nice_funcs_mt5.py    # 787 lines MetaTrader 5 utilities
 │   └── ezbot.py             # Legacy trading controller
-├── docs/                    # Agent-specific documentation (35+ docs)
+├── docs/                    # Agent-specific documentation (42+ docs)
 ├── tests/                   # Test suite
 ├── monitoring/              # Health monitoring scripts
 ├── CLAUDE.md                # This file
@@ -107,7 +108,9 @@ moon-dev-ai-agents/
 **Market Analysis**:
 - `sentiment_agent` - Twitter sentiment analysis with voice alerts
 - `whale_agent` - Whale activity monitoring and alerts
+- `volume_agent` - Volume spike detection on HyperLiquid with SwarmAgent analysis
 - `funding_agent` - Funding rates analysis across exchanges
+- `funding_agent_2` - Enhanced funding rate scanner with AI voice alerts (all HyperLiquid symbols)
 - `liquidation_agent` - Liquidation event tracking with AI analysis
 - `chartanalysis_agent` - Chart analysis with AI buy/sell recommendations
 - `coingecko_agent` - CoinGecko API integration for market data
@@ -133,6 +136,7 @@ moon-dev-ai-agents/
 - `backtest_runner` - Backtest execution engine
 - `research_agent` - Fills ideas.txt for automated strategy research
 - `websearch_agent` - Web scraping for trading strategy resources
+- `scraper_agent` - Batch URL processing with Selenium and SwarmAgent AI analysis
 
 **Specialized**:
 - `sniper_agent` - New Solana token launch detection and sniping
@@ -143,7 +147,8 @@ moon-dev-ai-agents/
 - `compliance_agent` - Ad compliance checking for Facebook/TikTok
 - `housecoin_agent` - DCA agent with AI confirmation (1 House = 1 Housecoin)
 - `polymarket_agent` - Prediction market trading on Polymarket
-- `swarm_agent` - 6-model parallel consensus (Claude, GPT, Gemini, Grok, DeepSeek)
+- `polymarket_websearch_agent` - Enhanced Polymarket integration with web search
+- `swarm_agent` - 7-model parallel consensus (Claude Sonnet, Claude Opus, GPT, Gemini, Grok, DeepSeek, DeepSeek-R1)
 - `focus_agent` - Productivity monitoring with audio sampling
 - `prompt_agent` - Interactive prompt enhancement tool
 - `code_runner_agent` - Dynamic code execution engine
@@ -507,6 +512,13 @@ Agent-specific documentation in `docs/`:
 - `rbi_agent.md` - RBI agent comprehensive guide
 - `swarm_agent.md` - Swarm consensus documentation
 - `polymarket_agent.md` - Polymarket integration
+- `volume_agent.md` - Volume spike detection guide
+- `volume_agent_README.md` - Extended volume agent documentation
+- `scraper_agent.md` - Scraper agent usage
+- `giveaway_agent.md` - Giveaway agent guide
+- `hyperliquid.md` - HyperLiquid integration overview
+- `HYPERLIQUID_SETUP.md` - HyperLiquid setup instructions
+- `PATH_FIXES_README.md` - Path configuration fixes
 - `prompt_agent.md` - Prompt enhancement guide
 - `websearch_agent.md` - Web search agent usage
 - Individual agent docs for all 50+ agents
@@ -527,9 +539,9 @@ The goal is to democratize AI agent development and show practical multi-agent o
 **Major Features Added**:
 - ✅ OpenRouter integration (200+ models)
 - ✅ xAI Grok integration
-- ✅ Swarm consensus (6-model voting)
+- ✅ Swarm consensus (upgraded to 7-model voting with Claude Opus 4.5)
 - ✅ MetaTrader 5 support (forex/stocks)
-- ✅ Polymarket integration
+- ✅ Polymarket integration with websearch enhancement
 - ✅ Trading hours management
 - ✅ Health monitoring system
 - ✅ Docker containerization
@@ -538,6 +550,15 @@ The goal is to democratize AI agent development and show practical multi-agent o
 - ✅ RBI parallel backtesting with web dashboard
 - ✅ Websearch agent for strategy research
 - ✅ 50+ agents (growing weekly)
+
+**Latest Upstream Merge (2025-12-01)**:
+- ✅ New agents: volume_agent, funding_agent_2, scraper_agent, polymarket_websearch_agent
+- ✅ Claude Opus 4.5 support in SwarmAgent (7-model consensus)
+- ✅ Enhanced HyperLiquid utilities (nice_funcs_hyperliquid.py)
+- ✅ Backwards compatibility maintained (nice_funcs_hl.py alias)
+- ✅ Improved liquidation_agent and polymarket_agent
+- ✅ 7 new documentation files
+- ✅ Security fixes: API key protection, wallet address environment variables, input validation layer
 
 **Coming Soon** (see `README.md` ROADMAP):
 - Base Chain integration
@@ -551,4 +572,4 @@ The goal is to democratize AI agent development and show practical multi-agent o
 
 *Built with 💖 by Moon Dev 🌙 - Pioneering the future of AI-powered trading*
 
-**Last Updated**: 2025-11-25
+**Last Updated**: 2025-12-01
