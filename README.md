@@ -33,19 +33,22 @@ feel free to join [our discord](https://discord.gg/8UPuVZ53bh) if you beleive ai
 - **RBI Parallel Agent** (`rbi_agent_pp_multi.py`): Parallel version with 18 threads, tests across 20+ data sources, web dashboard included
 - **Research Agent** (`research_agent.py`): Fills the ideas.txt file so the RBI agent can run forever
 - **Websearch Agent** (`websearch_agent.py`): This agent searches the web, in my use case for trading strategy resources and then uses other ai's to split the website ideas into strategy files i can have my  `rbi_agent_pp_multi.py` process and build out backtests
+- **Scraper Agent** (`scraper_agent.py`): Batch URL processing with Selenium for JavaScript-rendered sites, analyzes content with SwarmAgent AI for unlimited use cases
 
 ### Live Trading Agents
-- **Trading Agent** (`trading_agent.py`): **DUAL-MODE AI trading system** - Toggle between single model (fast ~10s) or swarm mode (6-model consensus ~45-60s). Swarm mode queries Claude 4.5, GPT-5, Gemini 2.5, Grok-4, DeepSeek, and DeepSeek-R1 local for majority vote trading decisions. Configure via `USE_SWARM_MODE` in config.py
+- **Trading Agent** (`trading_agent.py`): **DUAL-MODE AI trading system** - Toggle between single model (fast ~10s) or swarm mode (7-model consensus ~45-60s). Swarm mode queries Claude Sonnet 4.5, Claude Opus 4.5, GPT-5, Gemini 2.5, Grok-4, DeepSeek, and DeepSeek-R1 local for majority vote trading decisions. Configure via `USE_SWARM_MODE` in config.py
 - **Strategy Agent** (`strategy_agent.py`): Manages and executes trading strategies placed in the strategies folder
 - **Risk Agent** (`risk_agent.py`): Monitors and manages portfolio risk, enforcing position limits and PnL thresholds
 - **Copy Agent** (`copy_agent.py`): Monitors copy bot for potential trades
-- **Swarm Agent** (`swarm_agent.py`): Queries 6 AI models in parallel (Claude 4.5, GPT-5, Gemini 2.5, Grok-4, DeepSeek, DeepSeek-R1 local), generates AI consensus summary, returns clean JSON with model mapping for easy parsing 🐝
+- **Swarm Agent** (`swarm_agent.py`): Queries 7 AI models in parallel (Claude Sonnet 4.5, Claude Opus 4.5, GPT-5, Gemini 2.5, Grok-4, DeepSeek, DeepSeek-R1 local), generates AI consensus summary, returns clean JSON with model mapping for easy parsing 🐝
 
 ### Market Analysis Agents
+- **Volume Agent** (`volume_agent.py`): SwarmAgent-powered volume spike detection that watches all HyperLiquid tokens to identify upcoming runners early 🚀
 - **Whale Agent** (`whale_agent.py`): Monitors whale activity and announces when a whale enters the market
 - **Sentiment Agent** (`sentiment_agent.py`): Analyzes Twitter sentiment for crypto tokens with voice announcements
 - **Chart Agent** (`chartanalysis_agent.py`): Looks at any crypto chart and analyzes it with AI to make a buy/sell/nothing recommendation
 - **Funding Agent** (`funding_agent.py`): Monitors funding rates across exchanges and uses AI to analyze opportunities, providing voice alerts for extreme funding situations with technical context 🌙
+- **Funding Agent 2** (`funding_agent_2.py`): Enhanced funding rate scanner that monitors ALL HyperLiquid symbols with AI voice alerts for extreme funding anomalies
 - **Liquidation Agent** (`liquidation_agent.py`): Tracks liquidation events with configurable time windows (15min/1hr/4hr), providing AI analysis and voice alerts for significant liquidation spikes 💦
 - **Listing Arbitrage Agent** (`listingarb_agent.py`): Identifies promising Solana tokens on CoinGecko before they reach major exchanges like Binance and Coinbase, using parallel AI analysis for technical and fundamental insights
 - **Funding Arbitrage Agent** (`fundingarb_agent.py`): Tracks the funding rate on HyperLiquid to find funding rate arbitrage opportunities between HL and Solana
@@ -71,7 +74,8 @@ feel free to join [our discord](https://discord.gg/8UPuVZ53bh) if you beleive ai
 - **TikTok Agent** (`tiktok_agent.py`): Scrolls TikTok and gets screenshots of the video + comments to extract consumer data to feed into algos. Sometimes called social arbitrage
 - **Compliance Agent** (`compliance_agent.py`): Analyzes TikTok ads for Facebook advertising compliance, extracting frames and transcribing audio to check against FB guidelines
 - **Housecoin Agent** (`housecoin_agent.py`): DCA (dollar cost average) agent with AI confirmation layer using Grok-4 for the thesis: 1 House = 1 Housecoin 🏠
-- **Polymarket Agent** (`polymarket_agent.py`): Connects to the live trades feed via WebSocket and analyzes with the swarm agent to see which markets could be interesting to trade
+- **Polymarket Agent** (`polymarket_agent.py`): Connects to the live trades feed via WebSocket and analyzes with the swarm agent (7 models) to see which markets could be interesting to trade
+- **Polymarket Websearch Agent** (`polymarket_websearch_agent.py`): Enhanced Polymarket integration that combines prediction market data with web search for deeper market analysis
 
 
 ## ⚠️ Critical Disclaimers
@@ -137,7 +141,7 @@ cd moon-dev-ai-agents-for-trading
 
 **Recommended IDEs:**
 - [Cursor](https://www.cursor.com/) - AI-enabled coding
-- [Windsurfer](https://codeium.com/) - AI-enabled coding
+- [Windsurf](https://codeium.com/) - AI-enabled coding
 
 ### Step 3: 🔑 Set Up Environment Variables
 
