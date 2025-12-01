@@ -17,7 +17,7 @@ import openai
 import anthropic
 from pathlib import Path
 from src import nice_funcs as n
-from src import nice_funcs_hl as hl
+from src import nice_funcs_hyperliquid as hl
 from src.agents.api import MoonDevAPI
 from collections import deque
 from src.agents.base_agent import BaseAgent
@@ -181,26 +181,51 @@ class LiquidationAgent(BaseAgent):
         try:
             print("\n🔍 Fetching fresh liquidation data...")
             df = self.api.get_liquidation_data(limit=LIQUIDATION_ROWS)
-            
+
             if df is not None and not df.empty:
-                # Set column names
-                df.columns = ['symbol', 'side', 'type', 'time_in_force', 
-                            'quantity', 'price', 'price2', 'status', 
-                            'filled_qty', 'total_qty', 'timestamp', 'usd_value']
-                
-                # Convert timestamp to datetime (UTC)
-                df['datetime'] = pd.to_datetime(df['timestamp'], unit='ms')
+                # Debug: Print actual column count and types
+                print(f"🔍 Moon Dev Debug: DataFrame has {len(df.columns)} columns")
+                print(f"📋 Original column names: {list(df.columns)}")
+                print(f"📊 First row sample: {df.iloc[0].tolist()}")
+
+                # The CSV has no header! First row is being used as column names
+                # We need to assign proper column names based on position
+                if len(df.columns) == 13:
+                    # Assign proper column names
+                    df.columns = ['symbol', 'side', 'type', 'time_in_force',
+                                'quantity', 'price', 'price2', 'status',
+                                'filled_qty', 'total_qty', 'timestamp', 'usd_value', 'datetime']
+                    print(f"✅ Assigned proper column names (13 columns)")
+                elif len(df.columns) == 12:
+                    df.columns = ['symbol', 'side', 'type', 'time_in_force',
+                                'quantity', 'price', 'price2', 'status',
+                                'filled_qty', 'total_qty', 'timestamp', 'usd_value']
+                    print(f"✅ Assigned proper column names (12 columns)")
+                else:
+                    print(f"⚠️ Unexpected column count: {len(df.columns)}")
+                    return None
+
+                # Ensure datetime column exists
+                if 'datetime' not in df.columns:
+                    df['datetime'] = pd.to_datetime(df['timestamp'], unit='ms')
+                    print(f"✅ Created datetime from timestamp column")
+
+                # Convert usd_value to numeric if it's not
+                df['usd_value'] = pd.to_numeric(df['usd_value'], errors='coerce')
+
+                print(f"✅ Using columns: side='side', usd_value='usd_value'")
+
                 current_time = datetime.utcnow()
-                
+
                 # Calculate time windows
                 fifteen_min = current_time - timedelta(minutes=15)
                 one_hour = current_time - timedelta(hours=1)
                 four_hours = current_time - timedelta(hours=4)
-                
+
                 # Separate long and short liquidations
                 longs = df[df['side'] == 'SELL']  # SELL side = long liquidation
                 shorts = df[df['side'] == 'BUY']  # BUY side = short liquidation
-                
+
                 # Calculate totals for each time window and type
                 fifteen_min_longs = longs[longs['datetime'] >= fifteen_min]['usd_value'].sum()
                 fifteen_min_shorts = shorts[shorts['datetime'] >= fifteen_min]['usd_value'].sum()
