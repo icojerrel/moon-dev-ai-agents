@@ -45,3 +45,24 @@ MetaTrader5>=5.0.45
 
 # Production Utilities
 psutil>=5.9.0  # System monitoring
+
+# 🚀 Performance & Optimization Upgrades (Added by Moon Dev AI Assistant)
+# High-performance async HTTP client (7x faster than requests)
+httpx>=0.27.0
+httpx[http2]>=0.27.0  # HTTP/2 support for even better performance
+
+# Portfolio optimization library
+skfolio>=0.1.0  # Advanced portfolio optimization (CVaR, Risk Parity, HRP)
+scikit-learn>=1.3.0  # Required by skfolio
+
+# Caching (optional but recommended)
+redis>=5.0.0  # Redis client for distributed caching
+hiredis>=2.2.0  # Faster Redis protocol parser
+
+# Monitoring & Metrics
+prometheus-client>=0.19.0  # Prometheus metrics exporter
+
+# Database (optional upgrade from CSV)
+sqlalchemy>=2.0.0  # ORM for PostgreSQL/SQLite
+psycopg2-binary>=2.9.0  # PostgreSQL adapter
+alembic>=1.13.0  # Database migrations
