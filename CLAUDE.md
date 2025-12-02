@@ -120,6 +120,7 @@ moon-dev-ai-agents/
 
 **Content Creation**:
 - `chat_agent` - YouTube live stream chat moderation and responses
+- `giveaway_agent` - Community engagement tracking across YouTube/Twitch/X via Restream (chat participation points, wallet collection, leaderboard)
 - `clips_agent` - Video clipping automation
 - `realtime_clips_agent` - Real-time OBS stream clipping
 - `shortvid_agent` - Short-form video generation
