@@ -264,6 +264,15 @@ result = swarm.get_consensus("What's the market outlook?")
   - Trading recommendations per regime (strategy, position sizing, stops)
   - **Use case**: Adapt strategy selection based on market conditions
 
+- `prometheus_metrics.py` - Production monitoring with Prometheus integration
+  - Trade metrics: trades_total, trades_profitable, pnl_usd, position_size, kelly_fraction
+  - Agent metrics: agent_runs_total, agent_duration_seconds, agent_errors_total, llm_tokens_used
+  - API metrics: api_requests_total, api_latency_seconds, cache_hits/misses, rate_limits
+  - System metrics: uptime_seconds, errors_total, health_check_status
+  - HTTP server for Prometheus scraping (/metrics endpoint on port 8000)
+  - Decorator utilities (@track_agent_run, @track_api_call) for easy instrumentation
+  - **Use case**: Production monitoring, alerting, performance analysis, cost tracking
+
 **API Integration**:
 - `src/agents/api.py`: `MoonDevAPI` class for custom Moon Dev API endpoints
   - `get_liquidation_data()`, `get_funding_data()`, `get_oi_data()`, `get_copybot_follow_list()`
@@ -659,6 +668,83 @@ print(f"Position Sizing: {recs['position_sizing']}")
 print(f"Stop Loss: {recs['stop_loss']}")
 print(f"Notes: {recs['notes']}")
 ```
+
+### 🚀 Using Prometheus Metrics (NEW)
+```python
+from src.utils.prometheus_metrics import metrics
+
+# 1. Track individual trades
+metrics.track_trade(
+    symbol="BTC",
+    strategy="momentum",
+    direction="BUY",
+    pnl_usd=150.0,
+    position_size_usd=1000.0,
+    duration_seconds=3600.0,
+    kelly_fraction=0.10
+)
+
+# 2. Track agent execution (decorator pattern)
+@metrics.track_agent_run('trading_agent')
+def run_trading_agent():
+    # Your trading logic here
+    analyze_market()
+    execute_trades()
+    return "Agent completed"
+
+# 3. Track API calls (decorator pattern)
+@metrics.track_api_call('birdeye', '/token/price')
+def get_token_price(address):
+    response = requests.get(f"https://api.birdeye.so/token/{address}")
+    return response.json()
+
+# 4. Track cache performance
+metrics.api.cache_hits_total.labels(cache_type='memory').inc()
+metrics.api.cache_misses_total.labels(cache_type='memory').inc()
+
+# 5. Update portfolio metrics
+metrics.trading.portfolio_value_usd.set(10000.0)
+metrics.trading.cash_balance_usd.set(5000.0)
+
+# 6. Track LLM API usage
+metrics.agent.llm_tokens_used.labels(
+    model='claude-3-sonnet',
+    agent_name='trading_agent'
+).inc(1500)  # tokens used
+
+metrics.agent.llm_cost_usd.labels(
+    model='claude-3-sonnet',
+    agent_name='trading_agent'
+).inc(0.045)  # $0.045 cost
+
+# 7. Start metrics HTTP server (in main.py)
+if __name__ == "__main__":
+    # Start Prometheus metrics server
+    metrics.start_server(port=8000)
+    # Metrics available at: http://localhost:8000/metrics
+
+    # Run your trading loop
+    while True:
+        run_trading_loop()
+        time.sleep(60)
+```
+
+**Prometheus Configuration** (prometheus.yml):
+```yaml
+scrape_configs:
+  - job_name: 'moon-dev-trading'
+    scrape_interval: 15s
+    static_configs:
+      - targets: ['localhost:8000']
+```
+
+**Grafana Dashboards:**
+Create custom dashboards to visualize:
+- Trade performance over time (win rate, PnL)
+- Agent execution times and error rates
+- API latency and cache hit rates
+- Portfolio value and drawdowns
+- LLM API costs and token usage
 
 ## Production Deployment
 

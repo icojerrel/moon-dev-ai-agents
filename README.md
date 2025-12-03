@@ -551,14 +551,89 @@ Each regime includes specific recommendations for:
 - Stop-loss placement
 - Risk management notes
 
-### 📊 Prometheus Metrics (`src/utils/prometheus_metrics.py`)
+### 📊 Prometheus Metrics (`src/utils/prometheus_metrics.py`) ✅
 
-**Coming Soon:** Production monitoring with Prometheus integration for tracking:
-- Trade execution metrics
-- Agent performance
-- API latency
-- Error rates
-- System health
+**What it does:** Industry-standard production monitoring with Prometheus integration. Track everything in your trading system with production-grade observability.
+
+**Why it matters:** "You can't improve what you don't measure." Prometheus gives you complete visibility into system performance, costs, and trade results for data-driven optimization.
+
+**Metrics Tracked:**
+
+**Trading Metrics:**
+- trades_total, trades_profitable, trades_losing
+- pnl_usd (total and current)
+- position_size_usd, kelly_fraction_used
+- max_drawdown, circuit_breaker_triggers
+- strategy_win_rate, strategy_sharpe_ratio
+- trade_execution_latency, trade_duration
+
+**Agent Metrics:**
+- agent_runs_total (success/error)
+- agent_duration_seconds
+- agent_errors_total (by type)
+- llm_tokens_used, llm_cost_usd
+- active_agents (currently running)
+
+**API Metrics:**
+- api_requests_total (by service/endpoint/status)
+- api_latency_seconds
+- cache_hits/misses (by cache type)
+- rate_limit_events
+- external_service_up (health status)
+
+**System Metrics:**
+- uptime_seconds
+- errors_total (by component/severity)
+- health_check_status
+
+**Quick Example:**
+```python
+from src.utils.prometheus_metrics import metrics
+
+# Track trades
+metrics.track_trade(
+    symbol="BTC",
+    strategy="momentum",
+    direction="BUY",
+    pnl_usd=150.0,
+    position_size_usd=1000.0,
+    duration_seconds=3600.0,
+    kelly_fraction=0.10
+)
+
+# Track agent execution (decorator)
+@metrics.track_agent_run('trading_agent')
+def run_trading_agent():
+    # Your agent code
+    pass
+
+# Track API calls (decorator)
+@metrics.track_api_call('birdeye', '/token/price')
+def get_token_price(address):
+    return fetch_from_api(address)
+
+# Start HTTP server for Prometheus scraping
+metrics.start_server(port=8000)
+# Metrics available at: http://localhost:8000/metrics
+```
+
+**Grafana Integration:**
+Create dashboards to visualize:
+- Trade win rate and PnL over time
+- Agent execution times and error rates
+- API latency and cache efficiency
+- LLM API costs (track Claude/GPT spending)
+- Portfolio value and drawdown charts
+
+**Prometheus Setup:**
+```yaml
+# prometheus.yml
+scrape_configs:
+  - job_name: 'moon-dev-trading'
+    scrape_interval: 15s
+    static_configs:
+      - targets: ['localhost:8000']
+```
 
 ---
 
@@ -573,9 +648,9 @@ Each regime includes specific recommendations for:
 - [x] **Async HTTP Client** ✅
 - [x] **Portfolio Optimizer** ✅
 - [x] **Regime Detection** ✅ ⭐ **UNIQUE**
+- [x] **Prometheus Metrics** ✅ - Production monitoring
 
 ### Coming Soon
-- [ ] **Prometheus Metrics** - Production monitoring
 - [ ] **Integration Tests** - Automated testing for utils
 - [ ] **Polymarket Integration** - Prediction market trading
 - [ ] **Base Chain Integration** - L2 network support
