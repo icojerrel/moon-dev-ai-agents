@@ -255,6 +255,15 @@ result = swarm.get_consensus("What's the market outlook?")
   - Calculate portfolio metrics (Sharpe, max drawdown, VaR, CVaR)
   - Rebalancing suggestions with configurable thresholds
 
+- `regime_detection.py` - Market regime detection for adaptive strategy selection ⭐ **UNIQUE**
+  - Identifies 5 market regimes: Trending Bullish/Bearish, Mean Reverting, High/Low Volatility
+  - ADX-based trend strength calculation
+  - Volatility percentile analysis
+  - Mean reversion scoring (autocorrelation + MA crossings)
+  - Confidence scoring for each regime
+  - Trading recommendations per regime (strategy, position sizing, stops)
+  - **Use case**: Adapt strategy selection based on market conditions
+
 **API Integration**:
 - `src/agents/api.py`: `MoonDevAPI` class for custom Moon Dev API endpoints
   - `get_liquidation_data()`, `get_funding_data()`, `get_oi_data()`, `get_copybot_follow_list()`
@@ -594,6 +603,61 @@ print(f"Max Drawdown: {metrics['max_drawdown']:.2%}")
 current_weights = {'BTC': 0.50, 'ETH': 0.30, 'SOL': 0.20}
 trades = optimizer.suggest_rebalancing(current_weights, weights, threshold=0.05)
 # Result: {'BTC': -0.10, 'ETH': 0.05, 'SOL': 0.05} (buy ETH/SOL, sell BTC)
+```
+
+### 🚀 Using Regime Detection (NEW) ⭐ UNIQUE FEATURE
+```python
+from src.utils.regime_detection import RegimeDetector, RegimeType
+from src.nice_funcs import get_ohlcv_data
+
+# Initialize detector
+detector = RegimeDetector(
+    lookback_period=50,
+    volatility_threshold=0.02,  # 2% daily vol threshold
+    trend_threshold=0.3,        # ADX-style trend strength
+    mean_reversion_threshold=0.6
+)
+
+# Get price data
+prices = get_ohlcv_data(token_address, timeframe='1H', days_back=3)['close']
+
+# Detect current regime
+regime = detector.detect_regime(prices)
+
+print(f"Regime: {regime.regime.value}")
+print(f"Confidence: {regime.confidence:.1%}")
+print(f"Trend Strength: {regime.trend_strength:+.2f}")
+print(f"Volatility Percentile: {regime.volatility_percentile:.1%}")
+
+# Adapt strategy based on regime
+if regime.regime == RegimeType.TRENDING_BULLISH and regime.confidence > 0.7:
+    # Use trend-following strategy
+    strategy = "momentum"
+    # Use Kelly Criterion for aggressive sizing
+    position_size = quarter_kelly(win_rate=0.60, avg_win_pct=0.15, avg_loss_pct=0.10)
+
+elif regime.regime == RegimeType.MEAN_REVERTING and regime.confidence > 0.7:
+    # Use mean reversion strategy
+    strategy = "mean_reversion"
+    # Use fixed fraction for conservative sizing
+    position_size = 0.02  # 2% per trade
+
+elif regime.regime == RegimeType.HIGH_VOLATILITY:
+    # Reduce exposure in high volatility
+    strategy = "reduce_exposure"
+    position_size = 0.01  # Half normal size
+
+else:
+    # Mixed signals - be cautious
+    strategy = "wait"
+    position_size = 0.0
+
+# Get recommendations
+recs = detector.get_regime_recommendations(regime)
+print(f"Strategy: {recs['strategy']}")
+print(f"Position Sizing: {recs['position_sizing']}")
+print(f"Stop Loss: {recs['stop_loss']}")
+print(f"Notes: {recs['notes']}")
 ```
 
 ## Production Deployment

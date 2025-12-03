@@ -488,6 +488,69 @@ pip install skfolio scikit-learn
 # Already in requirements.txt
 ```
 
+### 🎯 Regime Detection (`src/utils/regime_detection.py`) ⭐ **UNIQUE**
+
+**What it does:** Identifies market regimes to enable adaptive strategy selection. Different trading strategies perform better in different market conditions.
+
+**Why it matters:** Using trend-following in a ranging market or mean-reversion in a trending market leads to losses. Regime detection adapts your strategy to current market conditions.
+
+**Market Regimes Detected:**
+1. **Trending Bullish** - Strong upward momentum → Use trend-following
+2. **Trending Bearish** - Strong downward momentum → Reduce exposure or short
+3. **Mean Reverting** - Range-bound, oscillating → Use mean reversion strategies
+4. **High Volatility** - Large unpredictable swings → Reduce position sizes
+5. **Low Volatility** - Stable conditions → Increase position sizes
+
+**Quick Example:**
+```python
+from src.utils.regime_detection import RegimeDetector, RegimeType
+from src.nice_funcs import get_ohlcv_data
+
+# Initialize detector
+detector = RegimeDetector(lookback_period=50)
+
+# Get price data
+prices = get_ohlcv_data(token_address, timeframe='1H', days_back=3)['close']
+
+# Detect regime
+regime = detector.detect_regime(prices)
+
+print(f"Regime: {regime.regime.value}")
+print(f"Confidence: {regime.confidence:.1%}")
+
+# Adapt strategy based on regime
+if regime.regime == RegimeType.TRENDING_BULLISH and regime.confidence > 0.7:
+    strategy = "momentum"  # Trend-following
+    position_size = quarter_kelly(...)  # Aggressive sizing
+
+elif regime.regime == RegimeType.MEAN_REVERTING and regime.confidence > 0.7:
+    strategy = "mean_reversion"  # Buy dips, sell rallies
+    position_size = 0.02  # Conservative sizing
+
+elif regime.regime == RegimeType.HIGH_VOLATILITY:
+    strategy = "reduce_exposure"
+    position_size = 0.01  # Half normal size
+
+# Get detailed recommendations
+recs = detector.get_regime_recommendations(regime)
+print(f"Strategy: {recs['strategy']}")
+print(f"Position Sizing: {recs['position_sizing']}")
+print(f"Notes: {recs['notes']}")
+```
+
+**Detection Methods:**
+- ADX-based trend strength calculation
+- Volatility percentile analysis
+- Mean reversion scoring (autocorrelation + MA crossings)
+- Confidence scoring for each regime
+
+**Trading Recommendations:**
+Each regime includes specific recommendations for:
+- Optimal strategy type
+- Position sizing guidelines
+- Stop-loss placement
+- Risk management notes
+
 ### 📊 Prometheus Metrics (`src/utils/prometheus_metrics.py`)
 
 **Coming Soon:** Production monitoring with Prometheus integration for tracking:
@@ -501,19 +564,24 @@ pip install skfolio scikit-learn
 
 ## 🗺️ ROADMAP
 
-### In Progress
+### Completed ✅
 - [x] **HyperLiquid Perps Integration** ✅
 - [x] **Swarm Consensus Trading** ✅
 - [x] **RBI Parallel Backtesting** ✅
+- [x] **Kelly Criterion Position Sizing** ✅
+- [x] **Intelligent Caching System** ✅
+- [x] **Async HTTP Client** ✅
+- [x] **Portfolio Optimizer** ✅
+- [x] **Regime Detection** ✅ ⭐ **UNIQUE**
 
 ### Coming Soon
+- [ ] **Prometheus Metrics** - Production monitoring
+- [ ] **Integration Tests** - Automated testing for utils
 - [ ] **Polymarket Integration** - Prediction market trading
 - [ ] **Base Chain Integration** - L2 network support
 - [ ] **Extended Integration** - Additional exchange support
 - [ ] **HyperLiquid Spot Trading** - Spot market support
 - [ ] **Trending Agent** - Spots leaders on HyperLiquid
-- [ ] **Position Sizing Agent** - Volume/liquidation-based sizing
-- [ ] **Regime Agents** - Adaptive strategy switching
 - [ ] **Polymarket Sweeper Agent** - Follow successful prediction traders
 
 ### Future Ideas
