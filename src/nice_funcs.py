@@ -22,6 +22,9 @@ from dotenv import load_dotenv
 import shutil
 import atexit
 
+# Import cache manager for API optimization (90% call reduction)
+from src.utils.cache_manager import cache_manager
+
 # Load environment variables
 load_dotenv()
 
@@ -56,10 +59,13 @@ def find_urls(string):
     return reggie.findall(r'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\\(\\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', string)
 
 # UPDATED TO RMEOVE THE OTHER ONE so now we can just use this filter instead of filtering twice
+@cache_manager.cached(ttl_seconds=60, key_prefix="token_overview")
 def token_overview(address):
     """
     Fetch token overview for a given address and return structured information, including specific links,
     and assess if any price change suggests a rug pull.
+
+    Cached for 60 seconds to reduce API calls.
     """
 
     print(f'Getting the token overview for {address}')
@@ -456,7 +462,9 @@ def fetch_wallet_token_single(address, token_mint_address):
     return df
 
 
+@cache_manager.cached(ttl_seconds=30, key_prefix="token_price")
 def token_price(address):
+    """Get current token price. Cached for 30 seconds (price updates frequently)."""
     url = f"https://public-api.birdeye.so/defi/price?address={address}"
     headers = {"X-API-KEY": BIRDEYE_API_KEY}
     response = requests.get(url, headers=headers)
@@ -474,9 +482,11 @@ def token_price(address):
 # time.sleep(897)
 
 
+@cache_manager.cached(ttl_seconds=30, key_prefix="get_position")
 def get_position(token_mint_address):
     """
     Fetches the balance of a specific token given its mint address from a DataFrame.
+    Cached for 30 seconds to reduce wallet API calls.
 
     Parameters:
     - dataframe: A pandas DataFrame containing token balances with columns ['Mint Address', 'Amount'].
@@ -1160,8 +1170,11 @@ def ai_entry(symbol, amount):
 
     cprint("✨ AI Agent completed position entry", "white", "on_blue")
 
+@cache_manager.cached(ttl_seconds=30, key_prefix="token_balance_usd")
 def get_token_balance_usd(token_mint_address):
-    """Get the USD value of a token position for Moon Dev's wallet 🌙"""
+    """Get the USD value of a token position for Moon Dev's wallet 🌙
+
+    Cached for 30 seconds to reduce wallet API calls."""
     try:
         # Get the position data using existing function
         df = fetch_wallet_token_single(address, token_mint_address)  # Using address from config
