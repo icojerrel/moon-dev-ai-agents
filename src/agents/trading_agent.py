@@ -116,6 +116,10 @@ AI_MAX_TOKENS = 1024   # Max tokens for AI response
 USE_PORTFOLIO_ALLOCATION = False # True = Use AI for portfolio allocation across multiple tokens
                                  # False = Simple mode - trade single token at MAX_POSITION_PERCENTAGE
 
+USE_KELLY_CRITERION = True       # True = Use Kelly Criterion for optimal position sizing
+                                 # False = Use fixed MAX_POSITION_PERCENTAGE
+                                 # Kelly Criterion uses win rate and avg win/loss from backtest stats
+
 MAX_POSITION_PERCENTAGE = 90     # % of account balance to use as MARGIN per position (0-100)
                                  # How it works per exchange:
                                  # - ASTER/HYPERLIQUID: % of balance used as MARGIN (then multiplied by leverage)
@@ -136,6 +140,26 @@ LEVERAGE = 9                    # Leverage multiplier (1-125x on Aster/HyperLiqu
 STOP_LOSS_PERCENTAGE = 5.0       # % loss to trigger stop loss exit (e.g., 5.0 = -5%)
 TAKE_PROFIT_PERCENTAGE = 5.0     # % gain to trigger take profit exit (e.g., 5.0 = +5%)
 PNL_CHECK_INTERVAL = 5           # Seconds between P&L checks when position is open
+
+# Kelly Criterion Parameters (from backtest stats)
+# Update these based on your strategy backtest results
+KELLY_STATS = {
+    'default': {  # Default stats if no specific strategy
+        'win_rate': 0.55,       # 55% win rate
+        'avg_win_pct': 0.10,    # Average win: +10%
+        'avg_loss_pct': 0.08    # Average loss: -8%
+    },
+    'momentum': {  # For trending bullish regimes
+        'win_rate': 0.60,
+        'avg_win_pct': 0.15,
+        'avg_loss_pct': 0.10
+    },
+    'mean_reversion': {  # For mean-reverting regimes
+        'win_rate': 0.55,
+        'avg_win_pct': 0.08,
+        'avg_loss_pct': 0.06
+    }
+}
 
 # Legacy settings (kept for compatibility, not used in new logic)
 usd_size = 25                    # [DEPRECATED] Use MAX_POSITION_PERCENTAGE instead
@@ -296,6 +320,9 @@ else:
 from src.data.ohlcv_collector import collect_all_tokens
 from src.models.model_factory import model_factory
 from src.agents.swarm_agent import SwarmAgent
+from src.utils.regime_detection import RegimeDetector, RegimeType
+from src.utils.position_sizing import quarter_kelly, position_size_usd
+from decimal import Decimal
 
 # Load environment variables
 load_dotenv()
@@ -413,39 +440,93 @@ def get_account_balance():
         traceback.print_exc()
         return 0
 
-def calculate_position_size(account_balance):
-    """Calculate position size based on account balance and MAX_POSITION_PERCENTAGE
+def calculate_position_size(account_balance, strategy='default', regime_info=None):
+    """Calculate position size using Kelly Criterion or fixed percentage
 
     Args:
         account_balance: Current account balance in USD
+        strategy: Strategy name to use for Kelly stats ('default', 'momentum', 'mean_reversion')
+        regime_info: Optional regime information to auto-select strategy
 
     Returns:
         float: Position size in USD (notional value)
     """
-    if EXCHANGE in ["ASTER", "HYPERLIQUID"]:
-        # For leveraged exchanges: MAX_POSITION_PERCENTAGE is the MARGIN to use
-        # Notional position = margin × leverage
-        margin_to_use = account_balance * (MAX_POSITION_PERCENTAGE / 100)
-        notional_position = margin_to_use * LEVERAGE
+    # Auto-select strategy based on regime if provided
+    if regime_info and hasattr(regime_info, 'regime'):
+        if regime_info.regime == RegimeType.TRENDING_BULLISH and regime_info.confidence > 0.7:
+            strategy = 'momentum'
+        elif regime_info.regime == RegimeType.MEAN_REVERTING and regime_info.confidence > 0.7:
+            strategy = 'mean_reversion'
 
-        cprint(f"\n📊 Position Calculation ({EXCHANGE}):", "yellow", attrs=['bold'])
-        cprint(f"   💵 Account Balance: ${account_balance:,.2f}", "white")
-        cprint(f"   📈 Max Position %: {MAX_POSITION_PERCENTAGE}%", "white")
-        cprint(f"   💰 Margin to Use: ${margin_to_use:,.2f}", "green", attrs=['bold'])
-        cprint(f"   ⚡ Leverage: {LEVERAGE}x", "white")
-        cprint(f"   💎 Notional Position: ${notional_position:,.2f}", "cyan", attrs=['bold'])
+    if USE_KELLY_CRITERION:
+        # Get Kelly stats for the strategy
+        stats = KELLY_STATS.get(strategy, KELLY_STATS['default'])
 
-        return notional_position
+        # Calculate Kelly fraction (using quarter Kelly for conservative sizing)
+        kelly_frac = quarter_kelly(
+            win_rate=stats['win_rate'],
+            avg_win_pct=stats['avg_win_pct'],
+            avg_loss_pct=stats['avg_loss_pct']
+        )
+
+        # Calculate position size with Kelly, capped at MAX_POSITION_PERCENTAGE
+        position_fraction = min(kelly_frac, MAX_POSITION_PERCENTAGE / 100)
+
+        if EXCHANGE in ["ASTER", "HYPERLIQUID"]:
+            # For leveraged exchanges: fraction is the MARGIN to use
+            margin_to_use = account_balance * position_fraction
+            notional_position = margin_to_use * LEVERAGE
+
+            cprint(f"\n📊 Kelly Criterion Position Sizing ({EXCHANGE}):", "yellow", attrs=['bold'])
+            cprint(f"   🎯 Strategy: {strategy}", "cyan")
+            cprint(f"   📈 Win Rate: {stats['win_rate']:.1%} | Avg Win: {stats['avg_win_pct']:.1%} | Avg Loss: {stats['avg_loss_pct']:.1%}", "white")
+            cprint(f"   🎲 Kelly Fraction: {kelly_frac:.2%} (Quarter Kelly for safety)", "green", attrs=['bold'])
+            cprint(f"   🔒 Position Fraction: {position_fraction:.2%} (capped at {MAX_POSITION_PERCENTAGE}%)", "white")
+            cprint(f"   💵 Account Balance: ${account_balance:,.2f}", "white")
+            cprint(f"   💰 Margin to Use: ${margin_to_use:,.2f}", "green", attrs=['bold'])
+            cprint(f"   ⚡ Leverage: {LEVERAGE}x", "white")
+            cprint(f"   💎 Notional Position: ${notional_position:,.2f}", "cyan", attrs=['bold'])
+
+            return notional_position
+        else:
+            # For Solana: No leverage, direct position size
+            position_size = float(position_size_usd(
+                kelly_fraction=kelly_frac,
+                capital_usd=account_balance,
+                max_position_pct=MAX_POSITION_PERCENTAGE / 100
+            ))
+
+            cprint(f"\n📊 Kelly Criterion Position Sizing (SOLANA):", "yellow", attrs=['bold'])
+            cprint(f"   🎯 Strategy: {strategy}", "cyan")
+            cprint(f"   📈 Win Rate: {stats['win_rate']:.1%} | Avg Win: {stats['avg_win_pct']:.1%} | Avg Loss: {stats['avg_loss_pct']:.1%}", "white")
+            cprint(f"   🎲 Kelly Fraction: {kelly_frac:.2%} (Quarter Kelly)", "green", attrs=['bold'])
+            cprint(f"   💵 USDC Balance: ${account_balance:,.2f}", "white")
+            cprint(f"   💎 Position Size: ${position_size:,.2f}", "cyan", attrs=['bold'])
+
+            return position_size
     else:
-        # For Solana: No leverage, direct position size
-        position_size = account_balance * (MAX_POSITION_PERCENTAGE / 100)
+        # Original fixed percentage logic
+        if EXCHANGE in ["ASTER", "HYPERLIQUID"]:
+            margin_to_use = account_balance * (MAX_POSITION_PERCENTAGE / 100)
+            notional_position = margin_to_use * LEVERAGE
 
-        cprint(f"\n📊 Position Calculation (SOLANA):", "yellow", attrs=['bold'])
-        cprint(f"   💵 USDC Balance: ${account_balance:,.2f}", "white")
-        cprint(f"   📈 Max Position %: {MAX_POSITION_PERCENTAGE}%", "white")
-        cprint(f"   💎 Position Size: ${position_size:,.2f}", "cyan", attrs=['bold'])
+            cprint(f"\n📊 Fixed % Position Calculation ({EXCHANGE}):", "yellow", attrs=['bold'])
+            cprint(f"   💵 Account Balance: ${account_balance:,.2f}", "white")
+            cprint(f"   📈 Max Position %: {MAX_POSITION_PERCENTAGE}%", "white")
+            cprint(f"   💰 Margin to Use: ${margin_to_use:,.2f}", "green", attrs=['bold'])
+            cprint(f"   ⚡ Leverage: {LEVERAGE}x", "white")
+            cprint(f"   💎 Notional Position: ${notional_position:,.2f}", "cyan", attrs=['bold'])
 
-        return position_size
+            return notional_position
+        else:
+            position_size = account_balance * (MAX_POSITION_PERCENTAGE / 100)
+
+            cprint(f"\n📊 Fixed % Position Calculation (SOLANA):", "yellow", attrs=['bold'])
+            cprint(f"   💵 USDC Balance: ${account_balance:,.2f}", "white")
+            cprint(f"   📈 Max Position %: {MAX_POSITION_PERCENTAGE}%", "white")
+            cprint(f"   💎 Position Size: ${position_size:,.2f}", "cyan", attrs=['bold'])
+
+            return position_size
 
 # ============================================================================
 # TRADING AGENT CLASS
@@ -479,7 +560,13 @@ class TradingAgent:
 
             cprint(f"✅ Using model: {self.model.model_name}", "green")
 
+        # Initialize Regime Detector for adaptive strategy selection
+        cprint("🎯 Initializing Regime Detector for market regime analysis...", "cyan")
+        self.regime_detector = RegimeDetector(lookback_period=50)
+        cprint("✅ Regime detector ready - will identify 5 market regimes", "green")
+
         self.recommendations_df = pd.DataFrame(columns=['token', 'action', 'confidence', 'reasoning'])
+        self.regime_info_cache = {}  # Cache regime info by token for use in position sizing
 
         # Show which tokens will be analyzed based on exchange
         cprint("\n🎯 Active Tokens for Trading:", "yellow", attrs=['bold'])
@@ -647,6 +734,45 @@ FULL DATASET:
             if token in EXCLUDED_TOKENS:
                 print(f"⚠️ Skipping analysis for excluded token: {token}")
                 return None
+
+            # ============= REGIME DETECTION =============
+            # Detect market regime for adaptive strategy selection
+            regime_info = None
+            try:
+                if 'close' in market_data:
+                    prices = market_data['close']
+                    if len(prices) >= 50:  # Need minimum 50 periods
+                        regime_info = self.regime_detector.detect_regime(prices)
+
+                        # Display regime information
+                        cprint(f"\n📊 Market Regime Analysis for {token[:8]}...", "yellow", attrs=['bold'])
+                        cprint(f"   Regime: {regime_info.regime.value}", "cyan", attrs=['bold'])
+                        cprint(f"   Confidence: {regime_info.confidence:.1%}", "green" if regime_info.confidence > 0.7 else "yellow")
+                        cprint(f"   Trend Strength: {regime_info.trend_strength:+.2f}", "white")
+                        cprint(f"   Volatility Percentile: {regime_info.volatility_percentile:.1%}", "white")
+
+                        # Get regime-specific recommendations
+                        recs = self.regime_detector.get_regime_recommendations(regime_info)
+                        cprint(f"   Strategy: {recs['strategy']}", "cyan")
+                        cprint(f"   Notes: {recs['notes']}", "white")
+
+                        # Add regime info to market_data for AI context
+                        market_data['regime'] = {
+                            'type': regime_info.regime.value,
+                            'confidence': f"{regime_info.confidence:.1%}",
+                            'trend_strength': f"{regime_info.trend_strength:+.2f}",
+                            'volatility_percentile': f"{regime_info.volatility_percentile:.1%}",
+                            'recommendation': recs
+                        }
+
+                        # Cache regime info for position sizing
+                        self.regime_info_cache[token] = regime_info
+                    else:
+                        cprint(f"⚠️  Insufficient data for regime detection ({len(prices)} periods, need 50+)", "yellow")
+                        self.regime_info_cache[token] = None
+            except Exception as e:
+                cprint(f"⚠️  Regime detection failed: {e}", "yellow")
+                self.regime_info_cache[token] = None
 
             # ============= SWARM MODE =============
             if USE_SWARM_MODE:
@@ -906,7 +1032,8 @@ Example format:
                         # SHORT MODE ENABLED - Open short position
                         # Get account balance and calculate position size
                         account_balance = get_account_balance()
-                        position_size = calculate_position_size(account_balance)
+                        regime_info = self.regime_info_cache.get(token, None)
+                        position_size = calculate_position_size(account_balance, regime_info=regime_info)
 
                         cprint(f"📉 SELL signal with no position - OPENING SHORT", "white", "on_red")
                         cprint(f"⚡ {EXCHANGE} mode: Opening ${position_size:,.2f} short position", "yellow")
@@ -931,11 +1058,12 @@ Example format:
                     if USE_PORTFOLIO_ALLOCATION:
                         cprint(f"📊 Portfolio allocation will handle entry", "white", "on_cyan")
                     else:
-                        # Simple mode: Open position at MAX_POSITION_PERCENTAGE
+                        # Simple mode: Open position using Kelly Criterion (if enabled) or fixed %
                         account_balance = get_account_balance()
-                        position_size = calculate_position_size(account_balance)
+                        regime_info = self.regime_info_cache.get(token, None)
+                        position_size = calculate_position_size(account_balance, regime_info=regime_info)
 
-                        cprint(f"💰 Opening position at MAX_POSITION_PERCENTAGE", "white", "on_green")
+                        cprint(f"💰 Opening position with {'Kelly Criterion' if USE_KELLY_CRITERION else 'fixed %'}", "white", "on_green")
                         try:
                             if EXCHANGE in ["ASTER", "HYPERLIQUID"]:
                                 success = n.ai_entry(token, position_size, leverage=LEVERAGE)

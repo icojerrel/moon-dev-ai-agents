@@ -22,6 +22,9 @@ from src.agents.strategy_agent import StrategyAgent
 from src.agents.copybot_agent import CopyBotAgent
 from src.agents.sentiment_agent import SentimentAgent
 
+# Import Prometheus metrics for production monitoring
+from src.utils.prometheus_metrics import metrics
+
 # Load environment variables
 load_dotenv()
 
@@ -37,6 +40,7 @@ ACTIVE_AGENTS = {
     # 'portfolio': False,  # Future portfolio optimization agent
 }
 
+@metrics.track_agent_run('main_loop')
 def run_agents():
     """Run all active agents in sequence"""
     try:
@@ -52,30 +56,35 @@ def run_agents():
                 # Run Risk Management
                 if risk_agent:
                     cprint("\n🛡️ Running Risk Management...", "cyan")
-                    risk_agent.run()
+                    with metrics.track_agent_run('risk_agent'):
+                        risk_agent.run()
 
                 # Run Trading Analysis
                 if trading_agent:
                     cprint("\n🤖 Running Trading Analysis...", "cyan")
-                    trading_agent.run()
+                    with metrics.track_agent_run('trading_agent'):
+                        trading_agent.run()
 
                 # Run Strategy Analysis
                 if strategy_agent:
                     cprint("\n📊 Running Strategy Analysis...", "cyan")
-                    for token in MONITORED_TOKENS:
-                        if token not in EXCLUDED_TOKENS:  # Skip USDC and other excluded tokens
-                            cprint(f"\n🔍 Analyzing {token}...", "cyan")
-                            strategy_agent.get_signals(token)
+                    with metrics.track_agent_run('strategy_agent'):
+                        for token in MONITORED_TOKENS:
+                            if token not in EXCLUDED_TOKENS:  # Skip USDC and other excluded tokens
+                                cprint(f"\n🔍 Analyzing {token}...", "cyan")
+                                strategy_agent.get_signals(token)
 
                 # Run CopyBot Analysis
                 if copybot_agent:
                     cprint("\n🤖 Running CopyBot Portfolio Analysis...", "cyan")
-                    copybot_agent.run_analysis_cycle()
+                    with metrics.track_agent_run('copybot_agent'):
+                        copybot_agent.run_analysis_cycle()
 
                 # Run Sentiment Analysis
                 if sentiment_agent:
                     cprint("\n🎭 Running Sentiment Analysis...", "cyan")
-                    sentiment_agent.run()
+                    with metrics.track_agent_run('sentiment_agent'):
+                        sentiment_agent.run()
 
                 # Sleep until next cycle
                 next_run = datetime.now() + timedelta(minutes=SLEEP_BETWEEN_RUNS_MINUTES)
@@ -85,16 +94,32 @@ def run_agents():
             except Exception as e:
                 cprint(f"\n❌ Error running agents: {str(e)}", "red")
                 cprint("🔄 Continuing to next cycle...", "yellow")
+                metrics.system.errors_total.labels(error_type='agent_error').inc()
                 time.sleep(60)  # Sleep for 1 minute on error before retrying
 
     except KeyboardInterrupt:
         cprint("\n👋 Gracefully shutting down...", "yellow")
     except Exception as e:
         cprint(f"\n❌ Fatal error in main loop: {str(e)}", "red")
+        metrics.system.errors_total.labels(error_type='fatal_error').inc()
         raise
 
 if __name__ == "__main__":
     cprint("\n🌙 Moon Dev AI Agent Trading System Starting...", "white", "on_blue")
+
+    # Start Prometheus metrics server for production monitoring
+    try:
+        metrics.start_server(port=8000)
+        cprint("\n📊 Prometheus Metrics Server Started", "green", attrs=['bold'])
+        cprint("   🌐 Metrics available at: http://localhost:8000/metrics", "cyan")
+        cprint("   📈 Use Prometheus + Grafana for visualization", "white")
+    except OSError as e:
+        if "Address already in use" in str(e):
+            cprint("\n⚠️  Metrics server already running on port 8000", "yellow")
+        else:
+            cprint(f"\n⚠️  Could not start metrics server: {e}", "yellow")
+            cprint("   Continuing without metrics...", "white")
+
     cprint("\n📊 Active Agents:", "white", "on_blue")
     for agent, active in ACTIVE_AGENTS.items():
         status = "✅ ON" if active else "❌ OFF"
